@@ -1,21 +1,16 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Sistema de Estética Automotiva</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-<h1>Sistema de Gestão para Estética Automotiva</h1>
+{% block titulo %}Início - Sistema de Estética Automotiva{% endblock %}
 
-<p>Bem-vindo ao sistema.</p>
+{% block conteudo %}
+<h1 class="mb-3">Sistema de Gestão para Estética Automotiva</h1>
+<p class="text-muted">Bem-vindo ao sistema.</p>
 
-<ul>
-    <li><a href="/clientes">Cadastro de Clientes</a></li>
-    <li><a href="/veiculos">Cadastro de Veículos</a></li>
-    <li><a href="/servicos">Registro de Serviços</a></li>
-    <li><a href="/agendamentos">Agendamentos</a></li>
-    <li><a href="/servicos_pendentes">Serviços Pendentes</a></li>
-</ul>
-
-</body>
-</html>
+<div class="list-group mt-4">
+    <a href="/clientes" class="list-group-item list-group-item-action">Cadastro de Clientes</a>
+    <a href="/veiculos" class="list-group-item list-group-item-action">Cadastro de Veículos</a>
+    <a href="/servicos" class="list-group-item list-group-item-action">Registro de Serviços</a>
+    <a href="/agendamentos" class="list-group-item list-group-item-action">Agendamentos</a>
+    <a href="/servicos_pendentes" class="list-group-item list-group-item-action">Serviços Pendentes</a>
+</div>
+{% endblock %}

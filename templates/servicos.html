@@ -1,38 +1,40 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Registro de Serviços</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-<h1>Registro de Serviços</h1>
+{% block titulo %}Registro de Serviços{% endblock %}
+
+{% block conteudo %}
+<h1 class="mb-4">Registro de Serviços</h1>
 
 <form>
-    <label>Cliente:</label><br>
-    <input type="text" name="cliente"><br><br>
+    <div class="mb-3">
+        <label class="form-label">Cliente</label>
+        <input type="text" name="cliente" class="form-control">
+    </div>
 
-    <label>Veículo:</label><br>
-    <input type="text" name="veiculo"><br><br>
+    <div class="mb-3">
+        <label class="form-label">Veículo</label>
+        <input type="text" name="veiculo" class="form-control">
+    </div>
 
-    <label>Tipo de Serviço:</label><br>
-    <input type="text" name="tipo_servico"><br><br>
+    <div class="mb-3">
+        <label class="form-label">Tipo de Serviço</label>
+        <input type="text" name="tipo_servico" class="form-control">
+    </div>
 
-    <label>Valor:</label><br>
-    <input type="text" name="valor"><br><br>
+    <div class="mb-3">
+        <label class="form-label">Valor</label>
+        <input type="text" name="valor" class="form-control">
+    </div>
 
-    <label>Status:</label><br>
-    <select name="status">
-        <option value="Pendente">Pendente</option>
-        <option value="Em andamento">Em andamento</option>
-        <option value="Concluído">Concluído</option>
-    </select><br><br>
+    <div class="mb-3">
+        <label class="form-label">Status</label>
+        <select name="status" class="form-select">
+            <option value="Pendente">Pendente</option>
+            <option value="Em andamento">Em andamento</option>
+            <option value="Concluído">Concluído</option>
+        </select>
+    </div>
 
-    <button type="submit">Salvar</button>
+    <button type="submit" class="btn btn-dark">Salvar</button>
 </form>
-
-<br>
-
-<a href="/">Voltar para o início</a>
-
-</body>
-</html> 
+{% endblock %}

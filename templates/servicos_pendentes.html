@@ -1,42 +1,35 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Serviços Pendentes</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-<h1>Serviços Pendentes</h1>
+{% block titulo %}Serviços Pendentes{% endblock %}
 
-<table border="1">
-    <tr>
-        <th>Cliente</th>
-        <th>Veículo</th>
-        <th>Serviço</th>
-        <th>Valor</th>
-        <th>Status</th>
-    </tr>
+{% block conteudo %}
+<h1 class="mb-4">Serviços Pendentes</h1>
 
-    <tr>
-        <td>João</td>
-        <td>Gol</td>
-        <td>Lavagem Completa</td>
-        <td>80</td>
-        <td>Pendente</td>
-    </tr>
-
-    <tr>
-        <td>Maria</td>
-        <td>HB20</td>
-        <td>Polimento</td>
-        <td>120</td>
-        <td>Pendente</td>
-    </tr>
-
+<table class="table table-bordered table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>Cliente</th>
+            <th>Veículo</th>
+            <th>Serviço</th>
+            <th>Valor</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>João</td>
+            <td>Gol</td>
+            <td>Lavagem Completa</td>
+            <td>80</td>
+            <td>Pendente</td>
+        </tr>
+        <tr>
+            <td>Maria</td>
+            <td>HB20</td>
+            <td>Polimento</td>
+            <td>120</td>
+            <td>Pendente</td>
+        </tr>
+    </tbody>
 </table>
-
-<br>
-
-<a href="/">Voltar para o início</a>
-
-</body>
-</html>
+{% endblock %}

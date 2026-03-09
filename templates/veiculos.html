@@ -1,34 +1,36 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Cadastro de Veículos</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-<h1>Cadastro de Veículos</h1>
+{% block titulo %}Cadastro de Veículos{% endblock %}
+
+{% block conteudo %}
+<h1 class="mb-4">Cadastro de Veículos</h1>
 
 <form>
-    <label>Cliente:</label><br>
-    <input type="text" name="cliente"><br><br>
+    <div class="mb-3">
+        <label class="form-label">Cliente</label>
+        <input type="text" name="cliente" class="form-control">
+    </div>
 
-    <label>Modelo:</label><br>
-    <input type="text" name="modelo"><br><br>
+    <div class="mb-3">
+        <label class="form-label">Modelo</label>
+        <input type="text" name="modelo" class="form-control">
+    </div>
 
-    <label>Marca:</label><br>
-    <input type="text" name="marca"><br><br>
+    <div class="mb-3">
+        <label class="form-label">Marca</label>
+        <input type="text" name="marca" class="form-control">
+    </div>
 
-    <label>Placa:</label><br>
-    <input type="text" name="placa"><br><br>
+    <div class="mb-3">
+        <label class="form-label">Placa</label>
+        <input type="text" name="placa" class="form-control">
+    </div>
 
-    <label>Cor:</label><br>
-    <input type="text" name="cor"><br><br>
+    <div class="mb-3">
+        <label class="form-label">Cor</label>
+        <input type="text" name="cor" class="form-control">
+    </div>
 
-    <button type="submit">Salvar</button>
+    <button type="submit" class="btn btn-dark">Salvar</button>
 </form>
-
-<br>
-
-<a href="/">Voltar para o início</a>
-
-</body>
-</html>
+{% endblock %}

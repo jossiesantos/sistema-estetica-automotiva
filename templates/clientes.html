@@ -1,28 +1,26 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Cadastro de Clientes</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-<h1>Cadastro de Clientes</h1>
+{% block titulo %}Cadastro de Clientes{% endblock %}
+
+{% block conteudo %}
+<h1 class="mb-4">Cadastro de Clientes</h1>
 
 <form>
-    <label>Nome:</label><br>
-    <input type="text" name="nome"><br><br>
+    <div class="mb-3">
+        <label class="form-label">Nome</label>
+        <input type="text" name="nome" class="form-control">
+    </div>
 
-    <label>Telefone:</label><br>
-    <input type="text" name="telefone"><br><br>
+    <div class="mb-3">
+        <label class="form-label">Telefone</label>
+        <input type="text" name="telefone" class="form-control">
+    </div>
 
-    <label>Email:</label><br>
-    <input type="email" name="email"><br><br>
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input type="email" name="email" class="form-control">
+    </div>
 
-    <button type="submit">Salvar</button>
+    <button type="submit" class="btn btn-dark">Salvar</button>
 </form>
-
-<br>
-
-<a href="/">Voltar para o início</a>
-
-</body>
-</html>
+{% endblock %}

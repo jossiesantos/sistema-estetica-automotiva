@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block titulo %}Novo Veículo{% endblock %}
+
+{% block conteudo %}
+
+<h2 class="mb-4">Novo Veículo</h2>
+
+<form>
+    <div class="mb-3">
+        <label class="form-label">Cliente</label>
+        <input type="text" class="form-control">
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Modelo</label>
+        <input type="text" class="form-control">
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Marca</label>
+        <input type="text" class="form-control">
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Placa</label>
+        <input type="text" class="form-control">
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Cor</label>
+        <input type="text" class="form-control">
+    </div>
+
+    <button class="btn btn-success">Salvar</button>
+    <a href="/veiculos" class="btn btn-secondary">Voltar</a>
+</form>
+
+{% endblock %}

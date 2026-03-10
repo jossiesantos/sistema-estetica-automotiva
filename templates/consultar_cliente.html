@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block titulo %}Consultar Cliente{% endblock %}
+
+{% block conteudo %}
+
+<h2 class="mb-4">Informações do Cliente</h2>
+
+{% if cliente %}
+    <p><strong>ID:</strong> {{ id }}</p>
+    <p><strong>Nome:</strong> {{ cliente.nome }}</p>
+    <p><strong>Telefone:</strong> {{ cliente.telefone }}</p>
+    <p><strong>Email:</strong> {{ cliente.email }}</p>
+{% else %}
+    <p class="text-danger">Cliente não encontrado.</p>
+{% endif %}
+
+<a href="/clientes" class="btn btn-secondary">Voltar</a>
+
+{% endblock %}

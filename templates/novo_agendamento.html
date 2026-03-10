@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block titulo %}Novo Agendamento{% endblock %}
+
+{% block conteudo %}
+
+<h2 class="mb-4">Novo Agendamento</h2>
+
+<form>
+
+<div class="mb-3">
+<label class="form-label">Cliente</label>
+<input type="text" class="form-control">
+</div>
+
+<div class="mb-3">
+<label class="form-label">Veículo</label>
+<input type="text" class="form-control">
+</div>
+
+<div class="mb-3">
+<label class="form-label">Serviço</label>
+<input type="text" class="form-control">
+</div>
+
+<div class="mb-3">
+<label class="form-label">Data</label>
+<input type="date" class="form-control">
+</div>
+
+<div class="mb-3">
+<label class="form-label">Hora</label>
+<input type="time" class="form-control">
+</div>
+
+<button class="btn btn-success">Salvar</button>
+<a href="/agendamentos" class="btn btn-secondary">Voltar</a>
+
+</form>
+
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block titulo %}Editar Serviço{% endblock %}
+
+{% block conteudo %}
+
+<h2 class="mb-4">Editar Serviço</h2>
+
+{% if servico %}
+<form>
+    <div class="mb-3">
+        <label class="form-label">Cliente</label>
+        <input type="text" class="form-control" value="{{ servico.cliente }}">
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Veículo</label>
+        <input type="text" class="form-control" value="{{ servico.veiculo }}">
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Tipo de Serviço</label>
+        <input type="text" class="form-control" value="{{ servico.tipo_servico }}">
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Valor</label>
+        <input type="text" class="form-control" value="{{ servico.valor }}">
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Status</label>
+        <select class="form-select">
+            <option {% if servico.status == 'Pendente' %}selected{% endif %}>Pendente</option>
+            <option {% if servico.status == 'Em andamento' %}selected{% endif %}>Em andamento</option>
+            <option {% if servico.status == 'Concluído' %}selected{% endif %}>Concluído</option>
+        </select>
+    </div>
+
+    <button class="btn btn-warning">Atualizar</button>
+    <a href="/servicos" class="btn btn-secondary">Voltar</a>
+</form>
+{% else %}
+    <p class="text-danger">Serviço não encontrado.</p>
+    <a href="/servicos" class="btn btn-secondary">Voltar</a>
+{% endif %}
+
+{% endblock %}

@@ -1,36 +1,71 @@
 {% extends "base.html" %}
 
-{% block titulo %}Agendamentos{% endblock %}
+{% block titulo %}Manutenção de Agendamentos{% endblock %}
 
 {% block conteudo %}
-<h1 class="mb-4">Agendamentos</h1>
 
-<form>
-    <div class="mb-3">
-        <label class="form-label">Cliente</label>
-        <input type="text" name="cliente" class="form-control">
+<h2 class="mb-4">Manutenção de Agendamentos</h2>
+
+<div class="row mb-4">
+
+    <div class="col-md-6">
+        <input type="text" class="form-control" placeholder="Pesquisar agendamento pelo cliente">
     </div>
 
-    <div class="mb-3">
-        <label class="form-label">Veículo</label>
-        <input type="text" name="veiculo" class="form-control">
+    <div class="col-md-2">
+        <button class="btn btn-dark w-100" disabled>Pesquisar</button>
     </div>
 
-    <div class="mb-3">
-        <label class="form-label">Serviço Agendado</label>
-        <input type="text" name="servico_agendado" class="form-control">
+    <div class="col-md-2">
+        <a href="/novo_agendamento" class="btn btn-success w-100">Novo Agendamento</a>
     </div>
 
-    <div class="mb-3">
-        <label class="form-label">Data</label>
-        <input type="date" name="data" class="form-control">
-    </div>
+</div>
 
-    <div class="mb-3">
-        <label class="form-label">Horário</label>
-        <input type="time" name="horario" class="form-control">
-    </div>
+<table class="table table-striped table-bordered">
 
-    <button type="submit" class="btn btn-dark">Salvar</button>
-</form>
+<thead class="table-dark">
+<tr>
+<th>ID</th>
+<th>Cliente</th>
+<th>Veículo</th>
+<th>Serviço</th>
+<th>Data</th>
+<th>Hora</th>
+<th>Ações</th>
+</tr>
+</thead>
+
+<tbody>
+
+<tr>
+<td>1</td>
+<td>João Silva</td>
+<td>Gol</td>
+<td>Lavagem Completa</td>
+<td>10/03/2026</td>
+<td>09:00</td>
+<td>
+<a href="/consultar_agendamento/1" class="btn btn-info btn-sm">Consultar</a>
+<a href="/editar_agendamento/1" class="btn btn-warning btn-sm">Editar</a>
+</td>
+</tr>
+
+<tr>
+<td>2</td>
+<td>Maria Souza</td>
+<td>HB20</td>
+<td>Polimento</td>
+<td>11/03/2026</td>
+<td>14:00</td>
+<td>
+<a href="/consultar_agendamento/2" class="btn btn-info btn-sm">Consultar</a>
+<a href="/editar_agendamento/2" class="btn btn-warning btn-sm">Editar</a>
+</td>
+</tr>
+
+</tbody>
+
+</table>
+
 {% endblock %}

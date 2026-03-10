@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block titulo %}Editar Agendamento{% endblock %}
+
+{% block conteudo %}
+
+<h2 class="mb-4">Editar Agendamento</h2>
+
+{% if agendamento %}
+<form>
+
+<div class="mb-3">
+<label class="form-label">Cliente</label>
+<input type="text" class="form-control" value="{{ agendamento.cliente }}">
+</div>
+
+<div class="mb-3">
+<label class="form-label">Veículo</label>
+<input type="text" class="form-control" value="{{ agendamento.veiculo }}">
+</div>
+
+<div class="mb-3">
+<label class="form-label">Serviço</label>
+<input type="text" class="form-control" value="{{ agendamento.servico }}">
+</div>
+
+<div class="mb-3">
+<label class="form-label">Data</label>
+<input type="date" class="form-control">
+</div>
+
+<div class="mb-3">
+<label class="form-label">Hora</label>
+<input type="time" class="form-control">
+</div>
+
+<button class="btn btn-warning">Atualizar</button>
+<a href="/agendamentos" class="btn btn-secondary">Voltar</a>
+
+</form>
+
+{% else %}
+
+<p class="text-danger">Agendamento não encontrado.</p>
+<a href="/agendamentos" class="btn btn-secondary">Voltar</a>
+
+{% endif %}
+
+{% endblock %}

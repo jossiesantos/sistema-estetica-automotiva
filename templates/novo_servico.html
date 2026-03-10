@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block titulo %}Novo Serviço{% endblock %}
+
+{% block conteudo %}
+
+<h2 class="mb-4">Novo Serviço</h2>
+
+<form>
+    <div class="mb-3">
+        <label class="form-label">Cliente</label>
+        <input type="text" class="form-control">
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Veículo</label>
+        <input type="text" class="form-control">
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Tipo de Serviço</label>
+        <input type="text" class="form-control">
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Valor</label>
+        <input type="text" class="form-control">
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Status</label>
+        <select class="form-select">
+            <option>Pendente</option>
+            <option>Em andamento</option>
+            <option>Concluído</option>
+        </select>
+    </div>
+
+    <button class="btn btn-success">Salvar</button>
+    <a href="/servicos" class="btn btn-secondary">Voltar</a>
+</form>
+
+{% endblock %}

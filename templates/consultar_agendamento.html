@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block titulo %}Consultar Agendamento{% endblock %}
+
+{% block conteudo %}
+
+<h2 class="mb-4">Informações do Agendamento</h2>
+
+{% if agendamento %}
+
+<p><strong>ID:</strong> {{ id }}</p>
+<p><strong>Cliente:</strong> {{ agendamento.cliente }}</p>
+<p><strong>Veículo:</strong> {{ agendamento.veiculo }}</p>
+<p><strong>Serviço:</strong> {{ agendamento.servico }}</p>
+<p><strong>Data:</strong> {{ agendamento.data }}</p>
+<p><strong>Hora:</strong> {{ agendamento.hora }}</p>
+
+{% else %}
+
+<p class="text-danger">Agendamento não encontrado.</p>
+
+{% endif %}
+
+<a href="/agendamentos" class="btn btn-secondary">Voltar</a>
+
+{% endblock %}

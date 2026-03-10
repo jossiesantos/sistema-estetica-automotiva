@@ -1,40 +1,65 @@
 {% extends "base.html" %}
 
-{% block titulo %}Registro de Serviços{% endblock %}
+{% block titulo %}Manutenção de Serviços{% endblock %}
 
 {% block conteudo %}
-<h1 class="mb-4">Registro de Serviços</h1>
 
-<form>
-    <div class="mb-3">
-        <label class="form-label">Cliente</label>
-        <input type="text" name="cliente" class="form-control">
+<h2 class="mb-4">Manutenção de Serviços</h2>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <input type="text" class="form-control" placeholder="Pesquisar serviço pelo cliente ou tipo">
     </div>
 
-    <div class="mb-3">
-        <label class="form-label">Veículo</label>
-        <input type="text" name="veiculo" class="form-control">
+    <div class="col-md-2">
+        <button class="btn btn-dark w-100" disabled>Pesquisar</button>
     </div>
 
-    <div class="mb-3">
-        <label class="form-label">Tipo de Serviço</label>
-        <input type="text" name="tipo_servico" class="form-control">
+    <div class="col-md-2">
+        <a href="/novo_servico" class="btn btn-success w-100">Novo Serviço</a>
     </div>
+</div>
 
-    <div class="mb-3">
-        <label class="form-label">Valor</label>
-        <input type="text" name="valor" class="form-control">
-    </div>
+<table class="table table-striped table-bordered">
+    <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Cliente</th>
+            <th>Veículo</th>
+            <th>Tipo de Serviço</th>
+            <th>Valor</th>
+            <th>Status</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
 
-    <div class="mb-3">
-        <label class="form-label">Status</label>
-        <select name="status" class="form-select">
-            <option value="Pendente">Pendente</option>
-            <option value="Em andamento">Em andamento</option>
-            <option value="Concluído">Concluído</option>
-        </select>
-    </div>
+    <tbody>
+        <tr>
+            <td>1</td>
+            <td>João Silva</td>
+            <td>Gol</td>
+            <td>Lavagem Completa</td>
+            <td>80,00</td>
+            <td>Pendente</td>
+            <td>
+                <a href="/consultar_servico/1" class="btn btn-info btn-sm">Consultar</a>
+                <a href="/editar_servico/1" class="btn btn-warning btn-sm">Editar</a>
+            </td>
+        </tr>
 
-    <button type="submit" class="btn btn-dark">Salvar</button>
-</form>
+        <tr>
+            <td>2</td>
+            <td>Maria Souza</td>
+            <td>HB20</td>
+            <td>Polimento</td>
+            <td>120,00</td>
+            <td>Em andamento</td>
+            <td>
+                <a href="/consultar_servico/2" class="btn btn-info btn-sm">Consultar</a>
+                <a href="/editar_servico/2" class="btn btn-warning btn-sm">Editar</a>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
 {% endblock %}

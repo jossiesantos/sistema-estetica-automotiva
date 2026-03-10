@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block titulo %}Consultar Serviço{% endblock %}
+
+{% block conteudo %}
+
+<h2 class="mb-4">Informações do Serviço</h2>
+
+{% if servico %}
+    <p><strong>ID:</strong> {{ id }}</p>
+    <p><strong>Cliente:</strong> {{ servico.cliente }}</p>
+    <p><strong>Veículo:</strong> {{ servico.veiculo }}</p>
+    <p><strong>Tipo de Serviço:</strong> {{ servico.tipo_servico }}</p>
+    <p><strong>Valor:</strong> {{ servico.valor }}</p>
+    <p><strong>Status:</strong> {{ servico.status }}</p>
+{% else %}
+    <p class="text-danger">Serviço não encontrado.</p>
+{% endif %}
+
+<a href="/servicos" class="btn btn-secondary">Voltar</a>
+
+{% endblock %}

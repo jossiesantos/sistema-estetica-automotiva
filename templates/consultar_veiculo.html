@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block titulo %}Consultar Veículo{% endblock %}
+
+{% block conteudo %}
+
+<h2 class="mb-4">Informações do Veículo</h2>
+
+{% if veiculo %}
+
+<p><strong>ID:</strong> {{ id }}</p>
+
+<p><strong>Cliente:</strong> {{ veiculo.cliente }}</p>
+
+<p><strong>Modelo:</strong> {{ veiculo.modelo }}</p>
+
+<p><strong>Marca:</strong> {{ veiculo.marca }}</p>
+
+<p><strong>Placa:</strong> {{ veiculo.placa }}</p>
+
+<p><strong>Cor:</strong> {{ veiculo.cor }}</p>
+
+{% else %}
+
+<p class="text-danger">Veículo não encontrado.</p>
+
+{% endif %}
+
+<a href="/veiculos" class="btn btn-secondary">Voltar</a>
+
+{% endblock %}

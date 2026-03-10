@@ -7,7 +7,18 @@ app = Flask(__name__)
 # =========================
 @app.route("/")
 def inicio():
-    return render_template("index.html")
+    total_clientes = 2
+    total_veiculos = 2
+    total_servicos_pendentes = 2
+    total_agendamentos_hoje = 2
+
+    return render_template(
+        "index.html",
+        total_clientes=total_clientes,
+        total_veiculos=total_veiculos,
+        total_servicos_pendentes=total_servicos_pendentes,
+        total_agendamentos_hoje=total_agendamentos_hoje
+    )
 
 
 # =========================
@@ -114,7 +125,41 @@ def servicos():
 
 @app.route("/servicos_pendentes")
 def servicos_pendentes():
-    return render_template("servicos_pendentes.html")
+
+    servicos = [
+        {
+            "id": 1,
+            "cliente": "João Silva",
+            "veiculo": "Gol",
+            "servico": "Lavagem Completa",
+            "valor": "80,00",
+            "status": "Pendente"
+        },
+        {
+            "id": 2,
+            "cliente": "Maria Souza",
+            "veiculo": "HB20",
+            "servico": "Polimento",
+            "valor": "120,00",
+            "status": "Em andamento"
+        },
+        {
+            "id": 3,
+            "cliente": "Carlos Lima",
+            "veiculo": "Onix",
+            "servico": "Higienização Interna",
+            "valor": "150,00",
+            "status": "Concluído"
+        }
+    ]
+
+    pendentes = []
+
+    for servico in servicos:
+        if servico["status"] != "Concluído":
+            pendentes.append(servico)
+
+    return render_template("servicos_pendentes.html", servicos=pendentes)
 
 
 # =========================

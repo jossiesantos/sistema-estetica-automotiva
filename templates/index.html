@@ -1,16 +1,62 @@
 {% extends "base.html" %}
 
-{% block titulo %}Início - Sistema de Estética Automotiva{% endblock %}
+{% block titulo %}Dashboard - Sistema de Estética Automotiva{% endblock %}
 
 {% block conteudo %}
-<h1 class="mb-3">Sistema de Gestão para Estética Automotiva</h1>
-<p class="text-muted">Bem-vindo ao sistema.</p>
 
-<div class="list-group mt-4">
-    <a href="/clientes" class="list-group-item list-group-item-action">Cadastro de Clientes</a>
-    <a href="/veiculos" class="list-group-item list-group-item-action">Cadastro de Veículos</a>
-    <a href="/servicos" class="list-group-item list-group-item-action">Registro de Serviços</a>
-    <a href="/agendamentos" class="list-group-item list-group-item-action">Agendamentos</a>
-    <a href="/servicos_pendentes" class="list-group-item list-group-item-action">Serviços Pendentes</a>
+<h1 class="mb-3">Dashboard do Sistema</h1>
+<p class="text-muted">Visão geral do sistema de gestão para estética automotiva.</p>
+
+<div class="row mt-4">
+
+    <div class="col-md-3 mb-3">
+        <div class="card text-bg-primary shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Clientes</h5>
+                <p class="card-text fs-2 fw-bold">{{ total_clientes }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card text-bg-success shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Veículos</h5>
+                <p class="card-text fs-2 fw-bold">{{ total_veiculos }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card text-bg-warning shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Serviços Pendentes</h5>
+                <p class="card-text fs-2 fw-bold">{{ total_servicos_pendentes }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card text-bg-dark shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Agendamentos Hoje</h5>
+                <p class="card-text fs-2 fw-bold">{{ total_agendamentos_hoje }}</p>
+            </div>
+        </div>
+    </div>
+
 </div>
+
+<div class="mt-4">
+    <h4 class="mb-3">Acesso rápido</h4>
+
+    <div class="list-group">
+        <a href="/clientes" class="list-group-item list-group-item-action">Manutenção de Clientes</a>
+        <a href="/veiculos" class="list-group-item list-group-item-action">Manutenção de Veículos</a>
+        <a href="/servicos" class="list-group-item list-group-item-action">Manutenção de Serviços</a>
+        <a href="/agendamentos" class="list-group-item list-group-item-action">Manutenção de Agendamentos</a>
+        <a href="/servicos_pendentes" class="list-group-item list-group-item-action">Serviços Pendentes</a>
+    </div>
+</div>
+
 {% endblock %}

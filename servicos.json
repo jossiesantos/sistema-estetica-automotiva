@@ -1,0 +1,20 @@
+[
+  {
+    "id": 2,
+    "cliente": "JOSSIE SANTOS",
+    "veiculo": "CRUZE",
+    "tipo_servico": "Polimento",
+    "valor": "120",
+    "status": "Concluído",
+    "agendamento_id": 2
+  },
+  {
+    "id": 3,
+    "cliente": "JOSSIE SANTOS",
+    "veiculo": "CRUZE",
+    "tipo_servico": "Polimento",
+    "valor": "120,00",
+    "status": "Concluído",
+    "agendamento_id": 4
+  }
+]

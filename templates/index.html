@@ -1,62 +1,160 @@
 {% extends "base.html" %}
 
-{% block titulo %}Dashboard - Sistema de Estética Automotiva{% endblock %}
+{% block title %}Dashboard{% endblock %}
 
-{% block conteudo %}
-
-<h1 class="mb-3">Dashboard do Sistema</h1>
-<p class="text-muted">Visão geral do sistema de gestão para estética automotiva.</p>
-
-<div class="row mt-4">
-
-    <div class="col-md-3 mb-3">
-        <div class="card text-bg-primary shadow-sm">
-            <div class="card-body">
-                <h5 class="card-title">Clientes</h5>
-                <p class="card-text fs-2 fw-bold">{{ total_clientes }}</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3 mb-3">
-        <div class="card text-bg-success shadow-sm">
-            <div class="card-body">
-                <h5 class="card-title">Veículos</h5>
-                <p class="card-text fs-2 fw-bold">{{ total_veiculos }}</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3 mb-3">
-        <div class="card text-bg-warning shadow-sm">
-            <div class="card-body">
-                <h5 class="card-title">Serviços Pendentes</h5>
-                <p class="card-text fs-2 fw-bold">{{ total_servicos_pendentes }}</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3 mb-3">
-        <div class="card text-bg-dark shadow-sm">
-            <div class="card-body">
-                <h5 class="card-title">Agendamentos Hoje</h5>
-                <p class="card-text fs-2 fw-bold">{{ total_agendamentos_hoje }}</p>
-            </div>
-        </div>
-    </div>
-
-</div>
-
-<div class="mt-4">
-    <h4 class="mb-3">Acesso rápido</h4>
-
-    <div class="list-group">
-        <a href="/clientes" class="list-group-item list-group-item-action">Manutenção de Clientes</a>
-        <a href="/veiculos" class="list-group-item list-group-item-action">Manutenção de Veículos</a>
-        <a href="/servicos" class="list-group-item list-group-item-action">Manutenção de Serviços</a>
-        <a href="/agendamentos" class="list-group-item list-group-item-action">Manutenção de Agendamentos</a>
-        <a href="/servicos_pendentes" class="list-group-item list-group-item-action">Serviços Pendentes</a>
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="page-title">Dashboard</h1>
+        <p class="page-subtitle">Resumo geral da operação</p>
     </div>
 </div>
 
+<div class="row g-4 mb-2">
+    <div class="col-md-6 col-xl-3">
+        <div class="dashboard-card card-clientes">
+            <div class="card-body">
+                <div class="card-label">Clientes</div>
+                <div class="card-value">{{ total_clientes }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="dashboard-card card-veiculos">
+            <div class="card-body">
+                <div class="card-label">Veículos</div>
+                <div class="card-value">{{ total_veiculos }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="dashboard-card card-servicos">
+            <div class="card-body">
+                <div class="card-label">Serviços Pendentes</div>
+                <div class="card-value">{{ total_servicos_pendentes }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="dashboard-card card-agendamentos">
+            <div class="card-body">
+                <div class="card-label">Agendamentos Ativos</div>
+                <div class="card-value">{{ total_agendamentos_ativos }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="dashboard-card card-historico">
+            <div class="card-body">
+                <div class="card-label">Agendamentos Finalizados</div>
+                <div class="card-value">{{ total_agendamentos_finalizados }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="dashboard-card card-clientes">
+            <div class="card-body">
+                <div class="card-label">Agendamentos Hoje</div>
+                <div class="card-value">{{ total_agendamentos_hoje }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="dashboard-card card-financeiro">
+            <div class="card-body">
+                <div class="card-label">Valor Pendente</div>
+                <div class="card-value">R$ {{ "%.2f"|format(valor_pendente) }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="dashboard-card card-veiculos">
+            <div class="card-body">
+                <div class="card-label">Valor Concluído</div>
+                <div class="card-value">R$ {{ "%.2f"|format(valor_concluido) }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card table-card h-100">
+            <div class="card-body">
+                <div class="section-title">Próximos agendamentos</div>
+
+                {% if proximos_agendamentos %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Veículo</th>
+                                <th>Data</th>
+                                <th>Hora</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in proximos_agendamentos %}
+                            <tr>
+                                <td class="fw-semibold">{{ item.cliente }}</td>
+                                <td>{{ item.veiculo }}</td>
+                                <td>{{ item.data }}</td>
+                                <td>{{ item.hora }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">Nenhum agendamento ativo.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card table-card h-100">
+            <div class="card-body">
+                <div class="section-title">Últimos finalizados</div>
+
+                {% if ultimos_finalizados %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Veículo</th>
+                                <th>Data</th>
+                                <th>Hora</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in ultimos_finalizados %}
+                            <tr>
+                                <td class="fw-semibold">{{ item.cliente }}</td>
+                                <td>{{ item.veiculo }}</td>
+                                <td>{{ item.data }}</td>
+                                <td>{{ item.hora }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">Nenhum histórico finalizado.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

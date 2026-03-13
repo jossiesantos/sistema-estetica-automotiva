@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Histórico de Agendamentos{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="page-title mb-1">Histórico de Agendamentos</h1>
+        <p class="page-subtitle mb-0">Visualize os agendamentos finalizados</p>
+    </div>
+</div>
+
+<div class="card table-card">
+    <div class="card-body">
+        <form method="GET" class="row g-2 mb-4">
+            <div class="col-md-10">
+                <input type="text" name="q" class="form-control" placeholder="Pesquisar por cliente, veículo, serviço, data ou hora" value="{{ q or '' }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Pesquisar</button>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cliente</th>
+                        <th>Veículo</th>
+                        <th>Serviço</th>
+                        <th>Data</th>
+                        <th>Hora</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for agendamento in agendamentos %}
+                    <tr>
+                        <td>{{ agendamento.id }}</td>
+                        <td class="fw-semibold">{{ agendamento.cliente }}</td>
+                        <td>{{ agendamento.veiculo }}</td>
+                        <td>{{ agendamento.servico }}</td>
+                        <td>{{ agendamento.data }}</td>
+                        <td>{{ agendamento.hora }}</td>
+                        <td><span class="badge bg-success">{{ agendamento.status }}</span></td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">Nenhum agendamento finalizado encontrado.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

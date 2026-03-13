@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1,
+    "cliente": "João Silva",
+    "modelo": "Gol",
+    "marca": "Volkswagen",
+    "placa": "ABC-1234",
+    "cor": "Branco"
+  },
+  {
+    "id": 2,
+    "cliente": "Maria Souza",
+    "modelo": "HB20",
+    "marca": "Hyundai",
+    "placa": "DEF-5678",
+    "cor": "Prata"
+  }
+]

@@ -1,22 +1,46 @@
 {% extends "base.html" %}
 
-{% block titulo %}Consultar Serviço{% endblock %}
+{% block title %}Consultar Serviço{% endblock %}
 
-{% block conteudo %}
+{% block content %}
+<div class="mb-4">
+    <h1 class="page-title mb-1">Informações do Serviço</h1>
+    <p class="page-subtitle mb-0">Detalhes do serviço cadastrado</p>
+</div>
 
-<h2 class="mb-4">Informações do Serviço</h2>
+<div class="card premium-card">
+    <div class="card-body p-4">
+        {% if servico %}
+            <div class="row mb-3">
+                <div class="col-md-6"><p><strong>ID:</strong> {{ servico.id }}</p></div>
+                <div class="col-md-6"><p><strong>Cliente:</strong> {{ servico.cliente }}</p></div>
+            </div>
 
-{% if servico %}
-    <p><strong>ID:</strong> {{ id }}</p>
-    <p><strong>Cliente:</strong> {{ servico.cliente }}</p>
-    <p><strong>Veículo:</strong> {{ servico.veiculo }}</p>
-    <p><strong>Tipo de Serviço:</strong> {{ servico.tipo_servico }}</p>
-    <p><strong>Valor:</strong> {{ servico.valor }}</p>
-    <p><strong>Status:</strong> {{ servico.status }}</p>
-{% else %}
-    <p class="text-danger">Serviço não encontrado.</p>
-{% endif %}
+            <div class="row mb-3">
+                <div class="col-md-6"><p><strong>Veículo:</strong> {{ servico.veiculo }}</p></div>
+                <div class="col-md-6"><p><strong>Tipo de Serviço:</strong> {{ servico.tipo_servico }}</p></div>
+            </div>
 
-<a href="/servicos" class="btn btn-secondary">Voltar</a>
+            <div class="row mb-4">
+                <div class="col-md-6"><p><strong>Valor:</strong> R$ {{ servico.valor }}</p></div>
+                <div class="col-md-6">
+                    <p>
+                        <strong>Status:</strong>
+                        {% if servico.status == 'Concluído' %}
+                            <span class="badge bg-success">{{ servico.status }}</span>
+                        {% elif servico.status == 'Em andamento' %}
+                            <span class="badge bg-primary">{{ servico.status }}</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">{{ servico.status }}</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        {% else %}
+            <p class="text-danger mb-3">Serviço não encontrado.</p>
+        {% endif %}
 
+        <a href="{{ url_for('servicos') }}" class="btn btn-secondary">Voltar</a>
+    </div>
+</div>
 {% endblock %}

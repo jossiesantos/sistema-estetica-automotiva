@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "cliente": "João Silva",
+    "veiculo": "Gol",
+    "servico": "Lavagem Completa",
+    "data": "2026-03-10",
+    "hora": "09:00",
+    "status": "Agendado"
+  },
+  {
+    "id": 2,
+    "cliente": "Maria Souza",
+    "veiculo": "HB20",
+    "servico": "Polimento",
+    "data": "2026-03-11",
+    "hora": "14:00",
+    "status": "Em andamento"
+  }
+]

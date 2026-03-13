@@ -1,31 +1,36 @@
 {% extends "base.html" %}
 
-{% block titulo %}Novo Cliente{% endblock %}
+{% block title %}Novo Cliente{% endblock %}
 
-{% block conteudo %}
-
-<h2 class="mb-4">Novo Cliente</h2>
-
-<form>
-
-<div class="mb-3">
-<label class="form-label">Nome</label>
-<input type="text" class="form-control">
+{% block content %}
+<div class="mb-4">
+    <h1 class="page-title mb-1">Novo Cliente</h1>
+    <p class="page-subtitle mb-0">Cadastre um novo cliente</p>
 </div>
 
-<div class="mb-3">
-<label class="form-label">Telefone</label>
-<input type="text" class="form-control">
+<div class="card premium-card">
+    <div class="card-body p-4">
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Nome</label>
+                <input type="text" name="nome" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Telefone</label>
+                <input type="text" name="telefone" class="form-control" required>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-semibold">E-mail</label>
+                <input type="email" name="email" class="form-control" required>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success">Salvar</button>
+                <a href="{{ url_for('clientes') }}" class="btn btn-secondary">Voltar</a>
+            </div>
+        </form>
+    </div>
 </div>
-
-<div class="mb-3">
-<label class="form-label">Email</label>
-<input type="email" class="form-control">
-</div>
-
-<button class="btn btn-success">Salvar</button>
-<a href="/clientes" class="btn btn-secondary">Voltar</a>
-
-</form>
-
 {% endblock %}

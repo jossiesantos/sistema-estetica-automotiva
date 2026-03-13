@@ -1,65 +1,81 @@
 {% extends "base.html" %}
 
-{% block titulo %}Manutenção de Serviços{% endblock %}
+{% block title %}Serviços{% endblock %}
 
-{% block conteudo %}
-
-<h2 class="mb-4">Manutenção de Serviços</h2>
-
-<div class="row mb-4">
-    <div class="col-md-6">
-        <input type="text" class="form-control" placeholder="Pesquisar serviço pelo cliente ou tipo">
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="page-title mb-1">Serviços</h1>
+        <p class="page-subtitle mb-0">Gerencie os serviços cadastrados</p>
     </div>
-
-    <div class="col-md-2">
-        <button class="btn btn-dark w-100" disabled>Pesquisar</button>
-    </div>
-
-    <div class="col-md-2">
-        <a href="/novo_servico" class="btn btn-success w-100">Novo Serviço</a>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('servicos_pendentes') }}" class="btn btn-outline-dark">Pendentes</a>
+        <a href="{{ url_for('novo_servico') }}" class="btn btn-dark">Novo serviço</a>
     </div>
 </div>
 
-<table class="table table-striped table-bordered">
-    <thead class="table-dark">
-        <tr>
-            <th>ID</th>
-            <th>Cliente</th>
-            <th>Veículo</th>
-            <th>Tipo de Serviço</th>
-            <th>Valor</th>
-            <th>Status</th>
-            <th>Ações</th>
-        </tr>
-    </thead>
+<div class="card table-card">
+    <div class="card-body">
+        <form method="GET" class="row g-2 mb-4">
+            <div class="col-md-10">
+                <input type="text" name="q" class="form-control" placeholder="Pesquisar por cliente, veículo, serviço ou status" value="{{ q or '' }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Pesquisar</button>
+            </div>
+        </form>
 
-    <tbody>
-        <tr>
-            <td>1</td>
-            <td>João Silva</td>
-            <td>Gol</td>
-            <td>Lavagem Completa</td>
-            <td>80,00</td>
-            <td>Pendente</td>
-            <td>
-                <a href="/consultar_servico/1" class="btn btn-info btn-sm">Consultar</a>
-                <a href="/editar_servico/1" class="btn btn-warning btn-sm">Editar</a>
-            </td>
-        </tr>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cliente</th>
+                        <th>Veículo</th>
+                        <th>Serviço</th>
+                        <th>Valor</th>
+                        <th>Status</th>
+                        <th class="text-end">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for servico in servicos %}
+                    <tr>
+                        <td>{{ servico.id }}</td>
+                        <td class="fw-semibold">{{ servico.cliente }}</td>
+                        <td>{{ servico.veiculo }}</td>
+                        <td>{{ servico.tipo_servico }}</td>
+                        <td>R$ {{ servico.valor }}</td>
+                        <td>
+                            {% if servico.status == 'Concluído' %}
+                                <span class="badge bg-success">{{ servico.status }}</span>
+                            {% elif servico.status == 'Em andamento' %}
+                                <span class="badge bg-primary">{{ servico.status }}</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">{{ servico.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ url_for('consultar_servico', id=servico.id) }}" class="btn btn-sm btn-outline-secondary">Consultar</a>
+                            <a href="{{ url_for('editar_servico', id=servico.id) }}" class="btn btn-sm btn-outline-primary">Editar</a>
 
-        <tr>
-            <td>2</td>
-            <td>Maria Souza</td>
-            <td>HB20</td>
-            <td>Polimento</td>
-            <td>120,00</td>
-            <td>Em andamento</td>
-            <td>
-                <a href="/consultar_servico/2" class="btn btn-info btn-sm">Consultar</a>
-                <a href="/editar_servico/2" class="btn btn-warning btn-sm">Editar</a>
-            </td>
-        </tr>
-    </tbody>
-</table>
+                            {% if servico.status != 'Concluído' %}
+                            <a href="{{ url_for('concluir_servico', id=servico.id) }}" class="btn btn-sm btn-outline-success">Concluir</a>
+                            {% endif %}
 
+                            <form method="POST" action="{{ url_for('excluir_servico', id=servico.id) }}" style="display:inline;" onsubmit="return confirm('Deseja realmente excluir este serviço?')">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Excluir</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">Nenhum serviço encontrado.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 {% endblock %}

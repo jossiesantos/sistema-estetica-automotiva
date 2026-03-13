@@ -1,26 +1,50 @@
 {% extends "base.html" %}
 
-{% block titulo %}Consultar Agendamento{% endblock %}
+{% block title %}Consultar Agendamento{% endblock %}
 
-{% block conteudo %}
+{% block content %}
+<div class="mb-4">
+    <h1 class="page-title mb-1">Informações do Agendamento</h1>
+    <p class="page-subtitle mb-0">Detalhes do agendamento cadastrado</p>
+</div>
 
-<h2 class="mb-4">Informações do Agendamento</h2>
+<div class="card premium-card">
+    <div class="card-body p-4">
+        {% if agendamento %}
+            <div class="row mb-3">
+                <div class="col-md-6"><p><strong>ID:</strong> {{ agendamento.id }}</p></div>
+                <div class="col-md-6"><p><strong>Cliente:</strong> {{ agendamento.cliente }}</p></div>
+            </div>
 
-{% if agendamento %}
+            <div class="row mb-3">
+                <div class="col-md-6"><p><strong>Veículo:</strong> {{ agendamento.veiculo }}</p></div>
+                <div class="col-md-6"><p><strong>Serviço:</strong> {{ agendamento.servico }}</p></div>
+            </div>
 
-<p><strong>ID:</strong> {{ id }}</p>
-<p><strong>Cliente:</strong> {{ agendamento.cliente }}</p>
-<p><strong>Veículo:</strong> {{ agendamento.veiculo }}</p>
-<p><strong>Serviço:</strong> {{ agendamento.servico }}</p>
-<p><strong>Data:</strong> {{ agendamento.data }}</p>
-<p><strong>Hora:</strong> {{ agendamento.hora }}</p>
+            <div class="row mb-3">
+                <div class="col-md-6"><p><strong>Data:</strong> {{ agendamento.data }}</p></div>
+                <div class="col-md-6"><p><strong>Hora:</strong> {{ agendamento.hora }}</p></div>
+            </div>
 
-{% else %}
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <p>
+                        <strong>Status:</strong>
+                        {% if agendamento.get('status','Agendado') == 'Finalizado' %}
+                            <span class="badge bg-success">Finalizado</span>
+                        {% elif agendamento.get('status') == 'Em andamento' %}
+                            <span class="badge bg-primary">Em andamento</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">Agendado</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        {% else %}
+            <p class="text-danger mb-3">Agendamento não encontrado.</p>
+        {% endif %}
 
-<p class="text-danger">Agendamento não encontrado.</p>
-
-{% endif %}
-
-<a href="/agendamentos" class="btn btn-secondary">Voltar</a>
-
+        <a href="{{ url_for('agendamentos') }}" class="btn btn-secondary">Voltar</a>
+    </div>
+</div>
 {% endblock %}

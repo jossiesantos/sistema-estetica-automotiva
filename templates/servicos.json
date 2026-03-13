@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "cliente": "João Silva",
+    "veiculo": "Gol",
+    "tipo_servico": "Lavagem Completa",
+    "valor": "80,00",
+    "status": "Pendente",
+    "agendamento_id": 1
+  },
+  {
+    "id": 2,
+    "cliente": "Maria Souza",
+    "veiculo": "HB20",
+    "tipo_servico": "Polimento",
+    "valor": "120,00",
+    "status": "Em andamento",
+    "agendamento_id": 2
+  }
+]

@@ -1,49 +1,60 @@
 {% extends "base.html" %}
 
-{% block titulo %}Editar Agendamento{% endblock %}
+{% block title %}Editar Agendamento{% endblock %}
 
-{% block conteudo %}
-
-<h2 class="mb-4">Editar Agendamento</h2>
-
-{% if agendamento %}
-<form>
-
-<div class="mb-3">
-<label class="form-label">Cliente</label>
-<input type="text" class="form-control" value="{{ agendamento.cliente }}">
+{% block content %}
+<div class="mb-4">
+    <h1 class="page-title mb-1">Editar Agendamento</h1>
+    <p class="page-subtitle mb-0">Atualize os dados do agendamento</p>
 </div>
 
-<div class="mb-3">
-<label class="form-label">Veículo</label>
-<input type="text" class="form-control" value="{{ agendamento.veiculo }}">
+<div class="card premium-card">
+    <div class="card-body p-4">
+        {% if agendamento %}
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Cliente</label>
+                <input type="text" name="cliente" class="form-control" value="{{ agendamento.cliente }}" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Veículo</label>
+                <input type="text" name="veiculo" class="form-control" value="{{ agendamento.veiculo }}" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Serviço</label>
+                <input type="text" name="servico" class="form-control" value="{{ agendamento.servico }}" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Data</label>
+                <input type="date" name="data" class="form-control" value="{{ agendamento.data }}" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Hora</label>
+                <input type="time" name="hora" class="form-control" value="{{ agendamento.hora }}" required>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Status</label>
+                <select name="status" class="form-select" required>
+                    <option value="Agendado" {% if agendamento.get('status','Agendado') == 'Agendado' %}selected{% endif %}>Agendado</option>
+                    <option value="Em andamento" {% if agendamento.get('status') == 'Em andamento' %}selected{% endif %}>Em andamento</option>
+                    <option value="Finalizado" {% if agendamento.get('status') == 'Finalizado' %}selected{% endif %}>Finalizado</option>
+                </select>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-warning">Atualizar</button>
+                <a href="{{ url_for('agendamentos') }}" class="btn btn-secondary">Voltar</a>
+            </div>
+        </form>
+        {% else %}
+            <p class="text-danger mb-3">Agendamento não encontrado.</p>
+            <a href="{{ url_for('agendamentos') }}" class="btn btn-secondary">Voltar</a>
+        {% endif %}
+    </div>
 </div>
-
-<div class="mb-3">
-<label class="form-label">Serviço</label>
-<input type="text" class="form-control" value="{{ agendamento.servico }}">
-</div>
-
-<div class="mb-3">
-<label class="form-label">Data</label>
-<input type="date" class="form-control">
-</div>
-
-<div class="mb-3">
-<label class="form-label">Hora</label>
-<input type="time" class="form-control">
-</div>
-
-<button class="btn btn-warning">Atualizar</button>
-<a href="/agendamentos" class="btn btn-secondary">Voltar</a>
-
-</form>
-
-{% else %}
-
-<p class="text-danger">Agendamento não encontrado.</p>
-<a href="/agendamentos" class="btn btn-secondary">Voltar</a>
-
-{% endif %}
-
 {% endblock %}

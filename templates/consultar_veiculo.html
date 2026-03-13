@@ -1,31 +1,35 @@
 {% extends "base.html" %}
 
-{% block titulo %}Consultar Veículo{% endblock %}
+{% block title %}Consultar Veículo{% endblock %}
 
-{% block conteudo %}
+{% block content %}
+<div class="mb-4">
+    <h1 class="page-title mb-1">Informações do Veículo</h1>
+    <p class="page-subtitle mb-0">Detalhes do veículo cadastrado</p>
+</div>
 
-<h2 class="mb-4">Informações do Veículo</h2>
+<div class="card premium-card">
+    <div class="card-body p-4">
+        {% if veiculo %}
+            <div class="row mb-3">
+                <div class="col-md-6"><p><strong>ID:</strong> {{ veiculo.id }}</p></div>
+                <div class="col-md-6"><p><strong>Cliente:</strong> {{ veiculo.cliente }}</p></div>
+            </div>
 
-{% if veiculo %}
+            <div class="row mb-3">
+                <div class="col-md-6"><p><strong>Modelo:</strong> {{ veiculo.modelo }}</p></div>
+                <div class="col-md-6"><p><strong>Marca:</strong> {{ veiculo.marca }}</p></div>
+            </div>
 
-<p><strong>ID:</strong> {{ id }}</p>
+            <div class="row mb-4">
+                <div class="col-md-6"><p><strong>Placa:</strong> {{ veiculo.placa }}</p></div>
+                <div class="col-md-6"><p><strong>Cor:</strong> {{ veiculo.cor }}</p></div>
+            </div>
+        {% else %}
+            <p class="text-danger mb-3">Veículo não encontrado.</p>
+        {% endif %}
 
-<p><strong>Cliente:</strong> {{ veiculo.cliente }}</p>
-
-<p><strong>Modelo:</strong> {{ veiculo.modelo }}</p>
-
-<p><strong>Marca:</strong> {{ veiculo.marca }}</p>
-
-<p><strong>Placa:</strong> {{ veiculo.placa }}</p>
-
-<p><strong>Cor:</strong> {{ veiculo.cor }}</p>
-
-{% else %}
-
-<p class="text-danger">Veículo não encontrado.</p>
-
-{% endif %}
-
-<a href="/veiculos" class="btn btn-secondary">Voltar</a>
-
+        <a href="{{ url_for('veiculos') }}" class="btn btn-secondary">Voltar</a>
+    </div>
+</div>
 {% endblock %}

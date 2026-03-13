@@ -1,39 +1,46 @@
 {% extends "base.html" %}
 
-{% block titulo %}Novo Veículo{% endblock %}
+{% block title %}Novo Veículo{% endblock %}
 
-{% block conteudo %}
+{% block content %}
+<div class="mb-4">
+    <h1 class="page-title mb-1">Novo Veículo</h1>
+    <p class="page-subtitle mb-0">Cadastre um novo veículo</p>
+</div>
 
-<h2 class="mb-4">Novo Veículo</h2>
+<div class="card premium-card">
+    <div class="card-body p-4">
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Cliente</label>
+                <input type="text" name="cliente" class="form-control" required>
+            </div>
 
-<form>
-    <div class="mb-3">
-        <label class="form-label">Cliente</label>
-        <input type="text" class="form-control">
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Modelo</label>
+                <input type="text" name="modelo" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Marca</label>
+                <input type="text" name="marca" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Placa</label>
+                <input type="text" name="placa" class="form-control" required>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Cor</label>
+                <input type="text" name="cor" class="form-control" required>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success">Salvar</button>
+                <a href="{{ url_for('veiculos') }}" class="btn btn-secondary">Voltar</a>
+            </div>
+        </form>
     </div>
-
-    <div class="mb-3">
-        <label class="form-label">Modelo</label>
-        <input type="text" class="form-control">
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Marca</label>
-        <input type="text" class="form-control">
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Placa</label>
-        <input type="text" class="form-control">
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Cor</label>
-        <input type="text" class="form-control">
-    </div>
-
-    <button class="btn btn-success">Salvar</button>
-    <a href="/veiculos" class="btn btn-secondary">Voltar</a>
-</form>
-
+</div>
 {% endblock %}

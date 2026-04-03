@@ -1,5 +1,5 @@
-import json
-import os
+import pyodbc
+from decimal import Decimal
 from functools import wraps
 from datetime import date
 from flask import Flask, render_template, request, redirect, url_for, session, flash
@@ -7,31 +7,80 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 app = Flask(__name__)
 app.secret_key = "sistema_estetica_automotiva_chave_secreta_123"
 
-ARQUIVO_CLIENTES = "clientes.json"
-ARQUIVO_VEICULOS = "veiculos.json"
-ARQUIVO_SERVICOS = "servicos.json"
-ARQUIVO_AGENDAMENTOS = "agendamentos.json"
+# ==========================================
+# CONFIGURAÇÃO DO SQL SERVER
+# ==========================================
+CONN_STR = (
+    "DRIVER={ODBC Driver 17 for SQL Server};"
+    "SERVER=localhost;"
+    "DATABASE=EsteticaAutomotiva;"
+    "UID=sa;"
+    "PWD=123;"
+    "Trusted_Connection=yes;"
+    "TrustServerCertificate=yes;"
+)
 
-USUARIOS = [
-    {"id": 1, "usuario": "admin", "senha": "1234"}
-]
+# =========================
+# FUNÇÕES DE BANCO
+# =========================
+def get_connection():
+    return pyodbc.connect(CONN_STR)
+
+
+def normalizar_valor_banco(valor):
+    if isinstance(valor, Decimal):
+        return float(valor)
+    return valor
+
+
+def fetch_all(sql, params=()):
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(sql, params)
+        colunas = [col[0] for col in cursor.description]
+        resultados = []
+        for row in cursor.fetchall():
+            item = {}
+            for i, col in enumerate(colunas):
+                item[col] = normalizar_valor_banco(row[i])
+            resultados.append(item)
+        return resultados
+
+
+def fetch_one(sql, params=()):
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(sql, params)
+        row = cursor.fetchone()
+        if not row:
+            return None
+        colunas = [col[0] for col in cursor.description]
+        item = {}
+        for i, col in enumerate(colunas):
+            item[col] = normalizar_valor_banco(row[i])
+        return item
+
+
+def execute_query(sql, params=()):
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(sql, params)
+        conn.commit()
+
+
+def execute_insert(sql, params=()):
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(sql, params)
+        cursor.execute("SELECT SCOPE_IDENTITY()")
+        novo_id = cursor.fetchone()[0]
+        conn.commit()
+        return int(novo_id)
 
 
 # =========================
 # FUNÇÕES GENÉRICAS
 # =========================
-def carregar_json(caminho):
-    if not os.path.exists(caminho):
-        return []
-    with open(caminho, "r", encoding="utf-8") as arquivo:
-        return json.load(arquivo)
-
-
-def salvar_json(caminho, dados):
-    with open(caminho, "w", encoding="utf-8") as arquivo:
-        json.dump(dados, arquivo, ensure_ascii=False, indent=2)
-
-
 def login_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -43,10 +92,12 @@ def login_required(func):
 
 
 def usuario_autenticado(usuario, senha):
-    for item in USUARIOS:
-        if item["usuario"] == usuario and item["senha"] == senha:
-            return item
-    return None
+    sql = """
+        SELECT id, usuario, senha
+        FROM usuarios
+        WHERE usuario = ? AND senha = ?
+    """
+    return fetch_one(sql, (usuario, senha))
 
 
 def converter_valor_para_float(valor):
@@ -58,9 +109,9 @@ def converter_valor_para_float(valor):
 
 
 def identificar_veiculo(veiculo):
-    marca = veiculo.get("marca", "").strip()
-    modelo = veiculo.get("modelo", "").strip()
-    placa = veiculo.get("placa", "").strip()
+    marca = str(veiculo.get("marca", "")).strip()
+    modelo = str(veiculo.get("modelo", "")).strip()
+    placa = str(veiculo.get("placa", "")).strip()
 
     descricao = f"{marca} {modelo}".strip()
     if placa:
@@ -74,136 +125,246 @@ def texto_normalizado(texto):
 
 
 # =========================
-# CLIENTES
+# HELPERS DE BUSCA POR TEXTO
+# Mantém compatibilidade com os formulários atuais
 # =========================
-def carregar_clientes():
-    return carregar_json(ARQUIVO_CLIENTES)
+def buscar_cliente_por_nome(nome):
+    sql = """
+        SELECT TOP 1 id, nome, telefone, email
+        FROM clientes
+        WHERE LOWER(nome) = LOWER(?)
+        ORDER BY id
+    """
+    return fetch_one(sql, (nome,))
 
 
-def salvar_clientes(clientes):
-    salvar_json(ARQUIVO_CLIENTES, clientes)
+def buscar_veiculo_por_descricao(descricao):
+    veiculos = carregar_veiculos()
+    descricao_normalizada = texto_normalizado(descricao)
 
+    for veiculo in veiculos:
+        if texto_normalizado(identificar_veiculo(veiculo)) == descricao_normalizada:
+            return veiculo
 
-def buscar_cliente_por_id(cliente_id):
-    clientes = carregar_clientes()
-    for cliente in clientes:
-        if cliente["id"] == cliente_id:
-            return cliente
     return None
 
 
-def proximo_id_clientes():
-    clientes = carregar_clientes()
-    if not clientes:
-        return 1
-    return max(cliente["id"] for cliente in clientes) + 1
+def obter_cliente_id_por_form():
+    cliente_id = request.form.get("cliente_id")
+    if cliente_id:
+        return int(cliente_id)
+
+    cliente_nome = request.form.get("cliente", "").strip()
+    if not cliente_nome:
+        return None
+
+    cliente = buscar_cliente_por_nome(cliente_nome)
+    return cliente["id"] if cliente else None
+
+
+def obter_veiculo_id_por_form():
+    veiculo_id = request.form.get("veiculo_id")
+    if veiculo_id:
+        return int(veiculo_id)
+
+    descricao = request.form.get("veiculo", "").strip()
+    if not descricao:
+        return None
+
+    veiculo = buscar_veiculo_por_descricao(descricao)
+    return veiculo["id"] if veiculo else None
+
+
+# =========================
+# CLIENTES
+# =========================
+def carregar_clientes():
+    sql = """
+        SELECT id, nome, telefone, email
+        FROM clientes
+        ORDER BY nome
+    """
+    return fetch_all(sql)
+
+
+def buscar_cliente_por_id(cliente_id):
+    sql = """
+        SELECT id, nome, telefone, email
+        FROM clientes
+        WHERE id = ?
+    """
+    return fetch_one(sql, (cliente_id,))
 
 
 # =========================
 # VEÍCULOS
 # =========================
 def carregar_veiculos():
-    return carregar_json(ARQUIVO_VEICULOS)
-
-
-def salvar_veiculos(veiculos):
-    salvar_json(ARQUIVO_VEICULOS, veiculos)
+    sql = """
+        SELECT
+            v.id,
+            v.cliente_id,
+            c.nome AS cliente,
+            v.modelo,
+            v.marca,
+            v.placa,
+            v.cor
+        FROM veiculos v
+        INNER JOIN clientes c ON c.id = v.cliente_id
+        ORDER BY v.id DESC
+    """
+    return fetch_all(sql)
 
 
 def buscar_veiculo_por_id(veiculo_id):
-    veiculos = carregar_veiculos()
-    for veiculo in veiculos:
-        if veiculo["id"] == veiculo_id:
-            return veiculo
-    return None
-
-
-def proximo_id_veiculos():
-    veiculos = carregar_veiculos()
-    if not veiculos:
-        return 1
-    return max(veiculo["id"] for veiculo in veiculos) + 1
+    sql = """
+        SELECT
+            v.id,
+            v.cliente_id,
+            c.nome AS cliente,
+            v.modelo,
+            v.marca,
+            v.placa,
+            v.cor
+        FROM veiculos v
+        INNER JOIN clientes c ON c.id = v.cliente_id
+        WHERE v.id = ?
+    """
+    return fetch_one(sql, (veiculo_id,))
 
 
 # =========================
 # SERVIÇOS
 # =========================
 def carregar_servicos():
-    return carregar_json(ARQUIVO_SERVICOS)
-
-
-def salvar_servicos(servicos):
-    salvar_json(ARQUIVO_SERVICOS, servicos)
+    sql = """
+        SELECT
+            s.id,
+            s.cliente_id,
+            c.nome AS cliente,
+            s.veiculo_id,
+            v.marca,
+            v.modelo,
+            v.placa,
+            CONCAT(
+                v.marca, ' ', v.modelo,
+                CASE
+                    WHEN v.placa IS NOT NULL AND LTRIM(RTRIM(v.placa)) <> '' THEN ' - ' + v.placa
+                    ELSE ''
+                END
+            ) AS veiculo,
+            s.tipo_servico,
+            CAST(s.valor AS DECIMAL(10,2)) AS valor,
+            s.status,
+            s.agendamento_id
+        FROM servicos s
+        INNER JOIN clientes c ON c.id = s.cliente_id
+        INNER JOIN veiculos v ON v.id = s.veiculo_id
+        ORDER BY s.id DESC
+    """
+    return fetch_all(sql)
 
 
 def buscar_servico_por_id(servico_id):
-    servicos = carregar_servicos()
-    for servico in servicos:
-        if servico["id"] == servico_id:
-            return servico
-    return None
-
-
-def proximo_id_servicos():
-    servicos = carregar_servicos()
-    if not servicos:
-        return 1
-    return max(servico["id"] for servico in servicos) + 1
+    sql = """
+        SELECT
+            s.id,
+            s.cliente_id,
+            c.nome AS cliente,
+            s.veiculo_id,
+            v.marca,
+            v.modelo,
+            v.placa,
+            CONCAT(
+                v.marca, ' ', v.modelo,
+                CASE
+                    WHEN v.placa IS NOT NULL AND LTRIM(RTRIM(v.placa)) <> '' THEN ' - ' + v.placa
+                    ELSE ''
+                END
+            ) AS veiculo,
+            s.tipo_servico,
+            CAST(s.valor AS DECIMAL(10,2)) AS valor,
+            s.status,
+            s.agendamento_id
+        FROM servicos s
+        INNER JOIN clientes c ON c.id = s.cliente_id
+        INNER JOIN veiculos v ON v.id = s.veiculo_id
+        WHERE s.id = ?
+    """
+    return fetch_one(sql, (servico_id,))
 
 
 def normalizar_servicos():
-    servicos = carregar_servicos()
-    alterou = False
-
-    for servico in servicos:
-        if "status" not in servico:
-            servico["status"] = "Pendente"
-            alterou = True
-        if "agendamento_id" not in servico:
-            servico["agendamento_id"] = None
-            alterou = True
-
-    if alterou:
-        salvar_servicos(servicos)
+    # Não é mais necessário com SQL Server,
+    # mas mantido para compatibilidade com o fluxo do sistema.
+    pass
 
 
 # =========================
 # AGENDAMENTOS
 # =========================
 def carregar_agendamentos():
-    return carregar_json(ARQUIVO_AGENDAMENTOS)
-
-
-def salvar_agendamentos(agendamentos):
-    salvar_json(ARQUIVO_AGENDAMENTOS, agendamentos)
+    sql = """
+        SELECT
+            a.id,
+            a.cliente_id,
+            c.nome AS cliente,
+            a.veiculo_id,
+            v.marca,
+            v.modelo,
+            v.placa,
+            CONCAT(
+                v.marca, ' ', v.modelo,
+                CASE
+                    WHEN v.placa IS NOT NULL AND LTRIM(RTRIM(v.placa)) <> '' THEN ' - ' + v.placa
+                    ELSE ''
+                END
+            ) AS veiculo,
+            a.servico,
+            CONVERT(VARCHAR(10), a.data, 23) AS data,
+            LEFT(CONVERT(VARCHAR(8), a.hora, 108), 5) AS hora,
+            a.status
+        FROM agendamentos a
+        INNER JOIN clientes c ON c.id = a.cliente_id
+        INNER JOIN veiculos v ON v.id = a.veiculo_id
+        ORDER BY a.data, a.hora
+    """
+    return fetch_all(sql)
 
 
 def buscar_agendamento_por_id(agendamento_id):
-    agendamentos = carregar_agendamentos()
-    for agendamento in agendamentos:
-        if agendamento["id"] == agendamento_id:
-            return agendamento
-    return None
-
-
-def proximo_id_agendamentos():
-    agendamentos = carregar_agendamentos()
-    if not agendamentos:
-        return 1
-    return max(agendamento["id"] for agendamento in agendamentos) + 1
+    sql = """
+        SELECT
+            a.id,
+            a.cliente_id,
+            c.nome AS cliente,
+            a.veiculo_id,
+            v.marca,
+            v.modelo,
+            v.placa,
+            CONCAT(
+                v.marca, ' ', v.modelo,
+                CASE
+                    WHEN v.placa IS NOT NULL AND LTRIM(RTRIM(v.placa)) <> '' THEN ' - ' + v.placa
+                    ELSE ''
+                END
+            ) AS veiculo,
+            a.servico,
+            CONVERT(VARCHAR(10), a.data, 23) AS data,
+            LEFT(CONVERT(VARCHAR(8), a.hora, 108), 5) AS hora,
+            a.status
+        FROM agendamentos a
+        INNER JOIN clientes c ON c.id = a.cliente_id
+        INNER JOIN veiculos v ON v.id = a.veiculo_id
+        WHERE a.id = ?
+    """
+    return fetch_one(sql, (agendamento_id,))
 
 
 def normalizar_agendamentos():
-    agendamentos = carregar_agendamentos()
-    alterou = False
-
-    for agendamento in agendamentos:
-        if "status" not in agendamento:
-            agendamento["status"] = "Agendado"
-            alterou = True
-
-    if alterou:
-        salvar_agendamentos(agendamentos)
+    # Não é mais necessário com SQL Server,
+    # mas mantido para compatibilidade com o fluxo do sistema.
+    pass
 
 
 def finalizar_agendamento_relacionado(servico):
@@ -212,88 +373,63 @@ def finalizar_agendamento_relacionado(servico):
     if not agendamento_id:
         return
 
-    agendamentos = carregar_agendamentos()
-    alterou = False
-
-    for agendamento in agendamentos:
-        if agendamento["id"] == agendamento_id:
-            agendamento["status"] = "Finalizado"
-            alterou = True
-            break
-
-    if alterou:
-        salvar_agendamentos(agendamentos)
+    execute_query("""
+        UPDATE agendamentos
+        SET status = 'Finalizado'
+        WHERE id = ?
+    """, (agendamento_id,))
 
 
 def existe_conflito_agendamento(data_agendamento, hora_agendamento, ignorar_id=None):
-    normalizar_agendamentos()
-    agendamentos = carregar_agendamentos()
+    sql = """
+        SELECT TOP 1 1 AS existe
+        FROM agendamentos
+        WHERE data = ?
+          AND hora = ?
+          AND status <> 'Finalizado'
+    """
+    params = [data_agendamento, hora_agendamento]
 
-    for agendamento in agendamentos:
-        if ignorar_id is not None and agendamento["id"] == ignorar_id:
-            continue
+    if ignorar_id is not None:
+        sql += " AND id <> ?"
+        params.append(ignorar_id)
 
-        status = agendamento.get("status", "Agendado").strip().lower()
-
-        if status == "finalizado":
-            continue
-
-        if agendamento.get("data") == data_agendamento and agendamento.get("hora") == hora_agendamento:
-            return True
-
-    return False
+    return fetch_one(sql, tuple(params)) is not None
 
 
 # =========================
 # REGRAS DE EXCLUSÃO
 # =========================
 def cliente_possui_vinculos(cliente):
-    nome_cliente = texto_normalizado(cliente.get("nome", ""))
+    cliente_id = cliente["id"]
 
-    veiculos = carregar_veiculos()
-    servicos = carregar_servicos()
-    agendamentos = carregar_agendamentos()
-
-    for veiculo in veiculos:
-        if texto_normalizado(veiculo.get("cliente", "")) == nome_cliente:
-            return True
-
-    for servico in servicos:
-        if texto_normalizado(servico.get("cliente", "")) == nome_cliente:
-            return True
-
-    for agendamento in agendamentos:
-        if texto_normalizado(agendamento.get("cliente", "")) == nome_cliente:
-            return True
-
-    return False
+    sql = """
+        SELECT TOP 1 1 AS existe
+        FROM (
+            SELECT cliente_id FROM veiculos
+            UNION ALL
+            SELECT cliente_id FROM servicos
+            UNION ALL
+            SELECT cliente_id FROM agendamentos
+        ) x
+        WHERE x.cliente_id = ?
+    """
+    return fetch_one(sql, (cliente_id,)) is not None
 
 
 def veiculo_possui_vinculos(veiculo):
-    candidatos = set()
+    veiculo_id = veiculo["id"]
 
-    placa = texto_normalizado(veiculo.get("placa", ""))
-    modelo = texto_normalizado(veiculo.get("modelo", ""))
-    marca = texto_normalizado(veiculo.get("marca", ""))
-    descricao = texto_normalizado(identificar_veiculo(veiculo))
-    marca_modelo = texto_normalizado(f"{veiculo.get('marca', '')} {veiculo.get('modelo', '')}".strip())
-
-    for item in [placa, modelo, marca, descricao, marca_modelo]:
-        if item:
-            candidatos.add(item)
-
-    servicos = carregar_servicos()
-    agendamentos = carregar_agendamentos()
-
-    for servico in servicos:
-        if texto_normalizado(servico.get("veiculo", "")) in candidatos:
-            return True
-
-    for agendamento in agendamentos:
-        if texto_normalizado(agendamento.get("veiculo", "")) in candidatos:
-            return True
-
-    return False
+    sql = """
+        SELECT TOP 1 1 AS existe
+        FROM (
+            SELECT veiculo_id FROM servicos
+            UNION ALL
+            SELECT veiculo_id FROM agendamentos
+        ) x
+        WHERE x.veiculo_id = ?
+    """
+    return fetch_one(sql, (veiculo_id,)) is not None
 
 
 def servico_possui_vinculos(servico):
@@ -301,11 +437,12 @@ def servico_possui_vinculos(servico):
 
 
 def agendamento_possui_vinculos(agendamento_id):
-    servicos = carregar_servicos()
-    for servico in servicos:
-        if servico.get("agendamento_id") == agendamento_id:
-            return True
-    return False
+    sql = """
+        SELECT TOP 1 1 AS existe
+        FROM servicos
+        WHERE agendamento_id = ?
+    """
+    return fetch_one(sql, (agendamento_id,)) is not None
 
 
 # =========================
@@ -426,9 +563,9 @@ def clientes():
     if q:
         lista_clientes = [
             cliente for cliente in lista_clientes
-            if q in cliente.get("nome", "").lower()
-            or q in cliente.get("telefone", "").lower()
-            or q in cliente.get("email", "").lower()
+            if q in str(cliente.get("nome", "")).lower()
+            or q in str(cliente.get("telefone", "")).lower()
+            or q in str(cliente.get("email", "")).lower()
         ]
 
     return render_template("clientes.html", clientes=lista_clientes, q=q)
@@ -438,17 +575,15 @@ def clientes():
 @login_required
 def novo_cliente():
     if request.method == "POST":
-        clientes = carregar_clientes()
+        execute_query("""
+            INSERT INTO clientes (nome, telefone, email)
+            VALUES (?, ?, ?)
+        """, (
+            request.form["nome"],
+            request.form["telefone"],
+            request.form["email"]
+        ))
 
-        novo = {
-            "id": proximo_id_clientes(),
-            "nome": request.form["nome"],
-            "telefone": request.form["telefone"],
-            "email": request.form["email"]
-        }
-
-        clientes.append(novo)
-        salvar_clientes(clientes)
         flash("Cliente cadastrado com sucesso.", "success")
         return redirect(url_for("clientes"))
 
@@ -465,23 +600,23 @@ def consultar_cliente(id):
 @app.route("/editar_cliente/<int:id>", methods=["GET", "POST"])
 @login_required
 def editar_cliente(id):
-    clientes = carregar_clientes()
-    cliente = None
-
-    for item in clientes:
-        if item["id"] == id:
-            cliente = item
-            break
+    cliente = buscar_cliente_por_id(id)
 
     if not cliente:
         return render_template("editar_cliente.html", cliente=None, id=id)
 
     if request.method == "POST":
-        cliente["nome"] = request.form["nome"]
-        cliente["telefone"] = request.form["telefone"]
-        cliente["email"] = request.form["email"]
+        execute_query("""
+            UPDATE clientes
+            SET nome = ?, telefone = ?, email = ?
+            WHERE id = ?
+        """, (
+            request.form["nome"],
+            request.form["telefone"],
+            request.form["email"],
+            id
+        ))
 
-        salvar_clientes(clientes)
         flash("Cliente atualizado com sucesso.", "success")
         return redirect(url_for("clientes"))
 
@@ -491,7 +626,6 @@ def editar_cliente(id):
 @app.route("/excluir_cliente/<int:id>", methods=["POST"])
 @login_required
 def excluir_cliente(id):
-    clientes = carregar_clientes()
     cliente = buscar_cliente_por_id(id)
 
     if not cliente:
@@ -502,8 +636,7 @@ def excluir_cliente(id):
         flash("Este cliente não pode ser excluído porque possui vínculos com veículos, serviços ou agendamentos.", "warning")
         return redirect(url_for("clientes"))
 
-    clientes = [c for c in clientes if c["id"] != id]
-    salvar_clientes(clientes)
+    execute_query("DELETE FROM clientes WHERE id = ?", (id,))
     flash("Cliente excluído com sucesso.", "success")
     return redirect(url_for("clientes"))
 
@@ -522,10 +655,10 @@ def veiculos():
         for veiculo in lista_veiculos:
             texto_veiculo = identificar_veiculo(veiculo).lower()
             if (
-                q in veiculo.get("cliente", "").lower()
-                or q in veiculo.get("modelo", "").lower()
-                or q in veiculo.get("marca", "").lower()
-                or q in veiculo.get("placa", "").lower()
+                q in str(veiculo.get("cliente", "")).lower()
+                or q in str(veiculo.get("modelo", "")).lower()
+                or q in str(veiculo.get("marca", "")).lower()
+                or q in str(veiculo.get("placa", "")).lower()
                 or q in texto_veiculo
             ):
                 filtrados.append(veiculo)
@@ -538,23 +671,28 @@ def veiculos():
 @login_required
 def novo_veiculo():
     if request.method == "POST":
-        veiculos = carregar_veiculos()
+        cliente_id = obter_cliente_id_por_form()
 
-        novo = {
-            "id": proximo_id_veiculos(),
-            "cliente": request.form["cliente"],
-            "modelo": request.form["modelo"],
-            "marca": request.form["marca"],
-            "placa": request.form["placa"],
-            "cor": request.form["cor"]
-        }
+        if not cliente_id:
+            flash("Cliente inválido ou não encontrado.", "danger")
+            return redirect(url_for("novo_veiculo"))
 
-        veiculos.append(novo)
-        salvar_veiculos(veiculos)
+        execute_query("""
+            INSERT INTO veiculos (cliente_id, modelo, marca, placa, cor)
+            VALUES (?, ?, ?, ?, ?)
+        """, (
+            cliente_id,
+            request.form["modelo"],
+            request.form["marca"],
+            request.form["placa"],
+            request.form["cor"]
+        ))
+
         flash("Veículo cadastrado com sucesso.", "success")
         return redirect(url_for("veiculos"))
 
-    return render_template("novo_veiculo.html")
+    clientes_lista = carregar_clientes()
+    return render_template("novo_veiculo.html", clientes=clientes_lista)
 
 
 @app.route("/consultar_veiculo/<int:id>")
@@ -567,35 +705,41 @@ def consultar_veiculo(id):
 @app.route("/editar_veiculo/<int:id>", methods=["GET", "POST"])
 @login_required
 def editar_veiculo(id):
-    veiculos = carregar_veiculos()
-    veiculo = None
-
-    for item in veiculos:
-        if item["id"] == id:
-            veiculo = item
-            break
+    veiculo = buscar_veiculo_por_id(id)
 
     if not veiculo:
         return render_template("editar_veiculo.html", veiculo=None, id=id)
 
     if request.method == "POST":
-        veiculo["cliente"] = request.form["cliente"]
-        veiculo["modelo"] = request.form["modelo"]
-        veiculo["marca"] = request.form["marca"]
-        veiculo["placa"] = request.form["placa"]
-        veiculo["cor"] = request.form["cor"]
+        cliente_id = obter_cliente_id_por_form()
 
-        salvar_veiculos(veiculos)
+        if not cliente_id:
+            flash("Cliente inválido ou não encontrado.", "danger")
+            return redirect(url_for("editar_veiculo", id=id))
+
+        execute_query("""
+            UPDATE veiculos
+            SET cliente_id = ?, modelo = ?, marca = ?, placa = ?, cor = ?
+            WHERE id = ?
+        """, (
+            cliente_id,
+            request.form["modelo"],
+            request.form["marca"],
+            request.form["placa"],
+            request.form["cor"],
+            id
+        ))
+
         flash("Veículo atualizado com sucesso.", "success")
         return redirect(url_for("veiculos"))
 
-    return render_template("editar_veiculo.html", veiculo=veiculo, id=id)
+    clientes_lista = carregar_clientes()
+    return render_template("editar_veiculo.html", veiculo=veiculo, id=id, clientes=clientes_lista)
 
 
 @app.route("/excluir_veiculo/<int:id>", methods=["POST"])
 @login_required
 def excluir_veiculo(id):
-    veiculos = carregar_veiculos()
     veiculo = buscar_veiculo_por_id(id)
 
     if not veiculo:
@@ -606,8 +750,7 @@ def excluir_veiculo(id):
         flash("Este veículo não pode ser excluído porque possui vínculos com serviços ou agendamentos.", "warning")
         return redirect(url_for("veiculos"))
 
-    veiculos = [v for v in veiculos if v["id"] != id]
-    salvar_veiculos(veiculos)
+    execute_query("DELETE FROM veiculos WHERE id = ?", (id,))
     flash("Veículo excluído com sucesso.", "success")
     return redirect(url_for("veiculos"))
 
@@ -625,10 +768,10 @@ def servicos():
     if q:
         lista_servicos = [
             servico for servico in lista_servicos
-            if q in servico.get("cliente", "").lower()
-            or q in servico.get("veiculo", "").lower()
-            or q in servico.get("tipo_servico", "").lower()
-            or q in servico.get("status", "").lower()
+            if q in str(servico.get("cliente", "")).lower()
+            or q in str(servico.get("veiculo", "")).lower()
+            or q in str(servico.get("tipo_servico", "")).lower()
+            or q in str(servico.get("status", "")).lower()
         ]
 
     return render_template("servicos.html", servicos=lista_servicos, q=q)
@@ -640,23 +783,32 @@ def novo_servico():
     normalizar_agendamentos()
 
     if request.method == "POST":
-        servicos = carregar_servicos()
+        cliente_id = obter_cliente_id_por_form()
+        veiculo_id = obter_veiculo_id_por_form()
+
+        if not cliente_id:
+            flash("Cliente inválido ou não encontrado.", "danger")
+            return redirect(url_for("novo_servico"))
+
+        if not veiculo_id:
+            flash("Veículo inválido ou não encontrado.", "danger")
+            return redirect(url_for("novo_servico"))
 
         agendamento_id = request.form.get("agendamento_id")
         agendamento_id = int(agendamento_id) if agendamento_id else None
 
-        novo = {
-            "id": proximo_id_servicos(),
-            "cliente": request.form["cliente"],
-            "veiculo": request.form["veiculo"],
-            "tipo_servico": request.form["tipo_servico"],
-            "valor": request.form["valor"],
-            "status": request.form["status"],
-            "agendamento_id": agendamento_id
-        }
+        execute_query("""
+            INSERT INTO servicos (cliente_id, veiculo_id, tipo_servico, valor, status, agendamento_id)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (
+            cliente_id,
+            veiculo_id,
+            request.form["tipo_servico"],
+            converter_valor_para_float(request.form["valor"]),
+            request.form["status"],
+            agendamento_id
+        ))
 
-        servicos.append(novo)
-        salvar_servicos(servicos)
         flash("Serviço cadastrado com sucesso.", "success")
         return redirect(url_for("servicos"))
 
@@ -666,7 +818,15 @@ def novo_servico():
         if agendamento.get("status", "Agendado") != "Finalizado"
     ]
 
-    return render_template("novo_servico.html", agendamentos=agendamentos_ativos)
+    clientes_lista = carregar_clientes()
+    veiculos_lista = carregar_veiculos()
+
+    return render_template(
+        "novo_servico.html",
+        agendamentos=agendamentos_ativos,
+        clientes=clientes_lista,
+        veiculos=veiculos_lista
+    )
 
 
 @app.route("/consultar_servico/<int:id>")
@@ -682,13 +842,7 @@ def editar_servico(id):
     normalizar_agendamentos()
     normalizar_servicos()
 
-    servicos = carregar_servicos()
-    servico = None
-
-    for item in servicos:
-        if item["id"] == id:
-            servico = item
-            break
+    servico = buscar_servico_por_id(id)
 
     if not servico:
         return render_template("editar_servico.html", servico=None, id=id, agendamentos=[])
@@ -696,20 +850,38 @@ def editar_servico(id):
     if request.method == "POST":
         status_anterior = servico.get("status", "Pendente")
 
+        cliente_id = obter_cliente_id_por_form()
+        veiculo_id = obter_veiculo_id_por_form()
+
+        if not cliente_id:
+            flash("Cliente inválido ou não encontrado.", "danger")
+            return redirect(url_for("editar_servico", id=id))
+
+        if not veiculo_id:
+            flash("Veículo inválido ou não encontrado.", "danger")
+            return redirect(url_for("editar_servico", id=id))
+
         agendamento_id = request.form.get("agendamento_id")
         agendamento_id = int(agendamento_id) if agendamento_id else None
 
-        servico["cliente"] = request.form["cliente"]
-        servico["veiculo"] = request.form["veiculo"]
-        servico["tipo_servico"] = request.form["tipo_servico"]
-        servico["valor"] = request.form["valor"]
-        servico["status"] = request.form["status"]
-        servico["agendamento_id"] = agendamento_id
+        execute_query("""
+            UPDATE servicos
+            SET cliente_id = ?, veiculo_id = ?, tipo_servico = ?, valor = ?, status = ?, agendamento_id = ?
+            WHERE id = ?
+        """, (
+            cliente_id,
+            veiculo_id,
+            request.form["tipo_servico"],
+            converter_valor_para_float(request.form["valor"]),
+            request.form["status"],
+            agendamento_id,
+            id
+        ))
 
-        salvar_servicos(servicos)
+        servico_atualizado = buscar_servico_por_id(id)
 
-        if status_anterior != "Concluído" and servico["status"] == "Concluído":
-            finalizar_agendamento_relacionado(servico)
+        if status_anterior != "Concluído" and servico_atualizado["status"] == "Concluído":
+            finalizar_agendamento_relacionado(servico_atualizado)
 
         flash("Serviço atualizado com sucesso.", "success")
         return redirect(url_for("servicos"))
@@ -721,11 +893,16 @@ def editar_servico(id):
         or agendamento["id"] == servico.get("agendamento_id")
     ]
 
+    clientes_lista = carregar_clientes()
+    veiculos_lista = carregar_veiculos()
+
     return render_template(
         "editar_servico.html",
         servico=servico,
         id=id,
-        agendamentos=agendamentos_disponiveis
+        agendamentos=agendamentos_disponiveis,
+        clientes=clientes_lista,
+        veiculos=veiculos_lista
     )
 
 
@@ -733,15 +910,17 @@ def editar_servico(id):
 @login_required
 def concluir_servico(id):
     normalizar_servicos()
-    servicos = carregar_servicos()
 
-    for servico in servicos:
-        if servico["id"] == id:
-            servico["status"] = "Concluído"
-            salvar_servicos(servicos)
-            finalizar_agendamento_relacionado(servico)
-            flash("Serviço concluído com sucesso.", "success")
-            break
+    execute_query("""
+        UPDATE servicos
+        SET status = 'Concluído'
+        WHERE id = ?
+    """, (id,))
+
+    servico = buscar_servico_por_id(id)
+    if servico:
+        finalizar_agendamento_relacionado(servico)
+        flash("Serviço concluído com sucesso.", "success")
 
     return redirect(url_for("servicos"))
 
@@ -761,10 +940,10 @@ def servicos_pendentes():
     if q:
         pendentes = [
             servico for servico in pendentes
-            if q in servico.get("cliente", "").lower()
-            or q in servico.get("veiculo", "").lower()
-            or q in servico.get("tipo_servico", "").lower()
-            or q in servico.get("status", "").lower()
+            if q in str(servico.get("cliente", "")).lower()
+            or q in str(servico.get("veiculo", "")).lower()
+            or q in str(servico.get("tipo_servico", "")).lower()
+            or q in str(servico.get("status", "")).lower()
         ]
 
     return render_template("servicos_pendentes.html", servicos=pendentes, q=q)
@@ -773,7 +952,6 @@ def servicos_pendentes():
 @app.route("/excluir_servico/<int:id>", methods=["POST"])
 @login_required
 def excluir_servico(id):
-    servicos = carregar_servicos()
     servico = buscar_servico_por_id(id)
 
     if not servico:
@@ -784,8 +962,7 @@ def excluir_servico(id):
         flash("Este serviço não pode ser excluído porque está vinculado a um agendamento.", "warning")
         return redirect(url_for("servicos"))
 
-    servicos = [s for s in servicos if s["id"] != id]
-    salvar_servicos(servicos)
+    execute_query("DELETE FROM servicos WHERE id = ?", (id,))
     flash("Serviço excluído com sucesso.", "success")
     return redirect(url_for("servicos"))
 
@@ -808,12 +985,12 @@ def agendamentos():
     if q:
         ativos = [
             agendamento for agendamento in ativos
-            if q in agendamento.get("cliente", "").lower()
-            or q in agendamento.get("veiculo", "").lower()
-            or q in agendamento.get("servico", "").lower()
-            or q in agendamento.get("data", "").lower()
-            or q in agendamento.get("hora", "").lower()
-            or q in agendamento.get("status", "").lower()
+            if q in str(agendamento.get("cliente", "")).lower()
+            or q in str(agendamento.get("veiculo", "")).lower()
+            or q in str(agendamento.get("servico", "")).lower()
+            or q in str(agendamento.get("data", "")).lower()
+            or q in str(agendamento.get("hora", "")).lower()
+            or q in str(agendamento.get("status", "")).lower()
         ]
 
     ativos = sorted(ativos, key=lambda x: (x.get("data", ""), x.get("hora", "")))
@@ -836,12 +1013,12 @@ def historico_agendamentos():
     if q:
         finalizados = [
             agendamento for agendamento in finalizados
-            if q in agendamento.get("cliente", "").lower()
-            or q in agendamento.get("veiculo", "").lower()
-            or q in agendamento.get("servico", "").lower()
-            or q in agendamento.get("data", "").lower()
-            or q in agendamento.get("hora", "").lower()
-            or q in agendamento.get("status", "").lower()
+            if q in str(agendamento.get("cliente", "")).lower()
+            or q in str(agendamento.get("veiculo", "")).lower()
+            or q in str(agendamento.get("servico", "")).lower()
+            or q in str(agendamento.get("data", "")).lower()
+            or q in str(agendamento.get("hora", "")).lower()
+            or q in str(agendamento.get("status", "")).lower()
         ]
 
     finalizados = sorted(finalizados, key=lambda x: (x.get("data", ""), x.get("hora", "")), reverse=True)
@@ -860,24 +1037,34 @@ def novo_agendamento():
             flash("Já existe um agendamento ativo para esta data e horário.", "danger")
             return redirect(url_for("novo_agendamento"))
 
-        agendamentos = carregar_agendamentos()
+        cliente_id = obter_cliente_id_por_form()
+        veiculo_id = obter_veiculo_id_por_form()
 
-        novo = {
-            "id": proximo_id_agendamentos(),
-            "cliente": request.form["cliente"],
-            "veiculo": request.form["veiculo"],
-            "servico": request.form["servico"],
-            "data": data_agendamento,
-            "hora": hora_agendamento,
-            "status": "Agendado"
-        }
+        if not cliente_id:
+            flash("Cliente inválido ou não encontrado.", "danger")
+            return redirect(url_for("novo_agendamento"))
 
-        agendamentos.append(novo)
-        salvar_agendamentos(agendamentos)
+        if not veiculo_id:
+            flash("Veículo inválido ou não encontrado.", "danger")
+            return redirect(url_for("novo_agendamento"))
+
+        execute_query("""
+            INSERT INTO agendamentos (cliente_id, veiculo_id, servico, data, hora, status)
+            VALUES (?, ?, ?, ?, ?, 'Agendado')
+        """, (
+            cliente_id,
+            veiculo_id,
+            request.form["servico"],
+            data_agendamento,
+            hora_agendamento
+        ))
+
         flash("Agendamento cadastrado com sucesso.", "success")
         return redirect(url_for("agendamentos"))
 
-    return render_template("novo_agendamento.html")
+    clientes_lista = carregar_clientes()
+    veiculos_lista = carregar_veiculos()
+    return render_template("novo_agendamento.html", clientes=clientes_lista, veiculos=veiculos_lista)
 
 
 @app.route("/consultar_agendamento/<int:id>")
@@ -892,13 +1079,7 @@ def consultar_agendamento(id):
 @login_required
 def editar_agendamento(id):
     normalizar_agendamentos()
-    agendamentos = carregar_agendamentos()
-    agendamento = None
-
-    for item in agendamentos:
-        if item["id"] == id:
-            agendamento = item
-            break
+    agendamento = buscar_agendamento_por_id(id)
 
     if not agendamento:
         return render_template("editar_agendamento.html", agendamento=None, id=id)
@@ -911,24 +1092,49 @@ def editar_agendamento(id):
             flash("Já existe outro agendamento ativo para esta data e horário.", "danger")
             return redirect(url_for("editar_agendamento", id=id))
 
-        agendamento["cliente"] = request.form["cliente"]
-        agendamento["veiculo"] = request.form["veiculo"]
-        agendamento["servico"] = request.form["servico"]
-        agendamento["data"] = data_agendamento
-        agendamento["hora"] = hora_agendamento
-        agendamento["status"] = request.form["status"]
+        cliente_id = obter_cliente_id_por_form()
+        veiculo_id = obter_veiculo_id_por_form()
 
-        salvar_agendamentos(agendamentos)
+        if not cliente_id:
+            flash("Cliente inválido ou não encontrado.", "danger")
+            return redirect(url_for("editar_agendamento", id=id))
+
+        if not veiculo_id:
+            flash("Veículo inválido ou não encontrado.", "danger")
+            return redirect(url_for("editar_agendamento", id=id))
+
+        execute_query("""
+            UPDATE agendamentos
+            SET cliente_id = ?, veiculo_id = ?, servico = ?, data = ?, hora = ?, status = ?
+            WHERE id = ?
+        """, (
+            cliente_id,
+            veiculo_id,
+            request.form["servico"],
+            data_agendamento,
+            hora_agendamento,
+            request.form["status"],
+            id
+        ))
+
         flash("Agendamento atualizado com sucesso.", "success")
         return redirect(url_for("agendamentos"))
 
-    return render_template("editar_agendamento.html", agendamento=agendamento, id=id)
+    clientes_lista = carregar_clientes()
+    veiculos_lista = carregar_veiculos()
+
+    return render_template(
+        "editar_agendamento.html",
+        agendamento=agendamento,
+        id=id,
+        clientes=clientes_lista,
+        veiculos=veiculos_lista
+    )
 
 
 @app.route("/excluir_agendamento/<int:id>", methods=["POST"])
 @login_required
 def excluir_agendamento(id):
-    agendamentos = carregar_agendamentos()
     agendamento = buscar_agendamento_por_id(id)
 
     if not agendamento:
@@ -939,8 +1145,7 @@ def excluir_agendamento(id):
         flash("Este agendamento não pode ser excluído porque está vinculado a um serviço.", "warning")
         return redirect(url_for("agendamentos"))
 
-    agendamentos = [a for a in agendamentos if a["id"] != id]
-    salvar_agendamentos(agendamentos)
+    execute_query("DELETE FROM agendamentos WHERE id = ?", (id,))
     flash("Agendamento excluído com sucesso.", "success")
     return redirect(url_for("agendamentos"))
 

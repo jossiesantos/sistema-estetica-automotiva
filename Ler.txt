@@ -1,0 +1,5 @@
+Bibliotecas utilizadas:
+	- flesk
+	- pyodbc
+
+Banco de dados utilizado: SQL Server 2025

@@ -1,0 +1,75 @@
+create database EsteticaAutomotiva
+go
+
+use EsteticaAutomotiva
+go
+
+CREATE TABLE usuarios (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    usuario VARCHAR(50) NOT NULL UNIQUE,
+    senha VARCHAR(255) NOT NULL
+);
+GO
+
+CREATE TABLE clientes (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    nome VARCHAR(150) NOT NULL,
+    telefone VARCHAR(30) NULL,
+    email VARCHAR(150) NULL
+);
+GO
+
+CREATE TABLE veiculos (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    cliente_id INT NOT NULL,
+    modelo VARCHAR(100) NOT NULL,
+    marca VARCHAR(100) NOT NULL,
+    placa VARCHAR(20) NULL,
+    cor VARCHAR(50) NULL,
+    CONSTRAINT FK_veiculos_clientes
+        FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+);
+GO
+
+CREATE TABLE agendamentos (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    cliente_id INT NOT NULL,
+    veiculo_id INT NOT NULL,
+    servico VARCHAR(150) NOT NULL,
+    data DATE NOT NULL,
+    hora TIME(0) NOT NULL,
+    status VARCHAR(30) NOT NULL CONSTRAINT DF_agendamentos_status DEFAULT 'Agendado',
+    CONSTRAINT FK_agendamentos_clientes
+        FOREIGN KEY (cliente_id) REFERENCES clientes(id),
+    CONSTRAINT FK_agendamentos_veiculos
+        FOREIGN KEY (veiculo_id) REFERENCES veiculos(id)
+);
+GO
+
+CREATE TABLE servicos (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    cliente_id INT NOT NULL,
+    veiculo_id INT NOT NULL,
+    tipo_servico VARCHAR(150) NOT NULL,
+    valor DECIMAL(10,2) NOT NULL CONSTRAINT DF_servicos_valor DEFAULT 0,
+    status VARCHAR(30) NOT NULL CONSTRAINT DF_servicos_status DEFAULT 'Pendente',
+    agendamento_id INT NULL,
+    CONSTRAINT FK_servicos_clientes
+        FOREIGN KEY (cliente_id) REFERENCES clientes(id),
+    CONSTRAINT FK_servicos_veiculos
+        FOREIGN KEY (veiculo_id) REFERENCES veiculos(id),
+    CONSTRAINT FK_servicos_agendamentos
+        FOREIGN KEY (agendamento_id) REFERENCES agendamentos(id)
+);
+GO
+
+CREATE INDEX IX_clientes_nome ON clientes(nome);
+CREATE INDEX IX_veiculos_cliente_id ON veiculos(cliente_id);
+CREATE INDEX IX_veiculos_placa ON veiculos(placa);
+CREATE INDEX IX_agendamentos_data_hora_status ON agendamentos(data, hora, status);
+CREATE INDEX IX_servicos_status ON servicos(status);
+GO
+
+INSERT INTO usuarios (usuario, senha)
+VALUES ('admin', '1234');
+GO

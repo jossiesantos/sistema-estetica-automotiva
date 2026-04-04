@@ -12,9 +12,17 @@
     <div class="card-body p-4">
         {% if veiculo %}
         <form method="POST">
+
             <div class="mb-3">
                 <label class="form-label fw-semibold">Cliente</label>
-                <input type="text" name="cliente" class="form-control" value="{{ veiculo.cliente }}" required>
+                <select name="cliente_id" class="form-select" required>
+                    <option value="">Selecione o cliente</option>
+                    {% for cliente in clientes %}
+                    <option value="{{ cliente.id }}" {% if veiculo.cliente_id == cliente.id %}selected{% endif %}>
+                        {{ cliente.nome }}
+                    </option>
+                    {% endfor %}
+                </select>
             </div>
 
             <div class="mb-3">
@@ -41,6 +49,7 @@
                 <button type="submit" class="btn btn-warning">Atualizar</button>
                 <a href="{{ url_for('veiculos') }}" class="btn btn-secondary">Voltar</a>
             </div>
+
         </form>
         {% else %}
             <p class="text-danger mb-3">Veículo não encontrado.</p>

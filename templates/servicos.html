@@ -45,7 +45,7 @@
                         <td class="fw-semibold">{{ servico.cliente }}</td>
                         <td>{{ servico.veiculo }}</td>
                         <td>{{ servico.tipo_servico }}</td>
-                        <td>R$ {{ servico.valor }}</td>
+                        <td>R$ {{ ("%.2f"|format(servico.valor))|replace(".", ",") }}</td>
                         <td>
                             {% if servico.status == 'Concluído' %}
                                 <span class="badge bg-success">{{ servico.status }}</span>

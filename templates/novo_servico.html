@@ -11,14 +11,27 @@
 <div class="card premium-card">
     <div class="card-body p-4">
         <form method="POST">
+
             <div class="mb-3">
                 <label class="form-label fw-semibold">Cliente</label>
-                <input type="text" name="cliente" class="form-control" required>
+                <select name="cliente_id" class="form-select" required>
+                    <option value="">Selecione o cliente</option>
+                    {% for cliente in clientes %}
+                    <option value="{{ cliente.id }}">{{ cliente.nome }}</option>
+                    {% endfor %}
+                </select>
             </div>
 
             <div class="mb-3">
                 <label class="form-label fw-semibold">Veículo</label>
-                <input type="text" name="veiculo" class="form-control" required>
+                <select name="veiculo_id" class="form-select" required>
+                    <option value="">Selecione o veículo</option>
+                    {% for veiculo in veiculos %}
+                    <option value="{{ veiculo.id }}">
+                        {{ veiculo.cliente }} - {{ veiculo.marca }} {{ veiculo.modelo }} - {{ veiculo.placa }}
+                    </option>
+                    {% endfor %}
+                </select>
             </div>
 
             <div class="mb-3">
@@ -56,6 +69,7 @@
                 <button type="submit" class="btn btn-success">Salvar</button>
                 <a href="{{ url_for('servicos') }}" class="btn btn-secondary">Voltar</a>
             </div>
+
         </form>
     </div>
 </div>

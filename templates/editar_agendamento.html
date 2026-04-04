@@ -14,12 +14,26 @@
         <form method="POST">
             <div class="mb-3">
                 <label class="form-label fw-semibold">Cliente</label>
-                <input type="text" name="cliente" class="form-control" value="{{ agendamento.cliente }}" required>
+                <select name="cliente_id" class="form-select" required>
+                    <option value="">Selecione o cliente</option>
+                    {% for cliente in clientes %}
+                    <option value="{{ cliente.id }}" {% if agendamento.cliente_id == cliente.id %}selected{% endif %}>
+                        {{ cliente.nome }}
+                    </option>
+                    {% endfor %}
+                </select>
             </div>
 
             <div class="mb-3">
                 <label class="form-label fw-semibold">Veículo</label>
-                <input type="text" name="veiculo" class="form-control" value="{{ agendamento.veiculo }}" required>
+                <select name="veiculo_id" class="form-select" required>
+                    <option value="">Selecione o veículo</option>
+                    {% for veiculo in veiculos %}
+                    <option value="{{ veiculo.id }}" {% if agendamento.veiculo_id == veiculo.id %}selected{% endif %}>
+                        {{ veiculo.cliente }} - {{ veiculo.marca }} {{ veiculo.modelo }} - {{ veiculo.placa }}
+                    </option>
+                    {% endfor %}
+                </select>
             </div>
 
             <div class="mb-3">
@@ -40,7 +54,7 @@
             <div class="mb-4">
                 <label class="form-label fw-semibold">Status</label>
                 <select name="status" class="form-select" required>
-                    <option value="Agendado" {% if agendamento.get('status','Agendado') == 'Agendado' %}selected{% endif %}>Agendado</option>
+                    <option value="Agendado" {% if agendamento.get('status', 'Agendado') == 'Agendado' %}selected{% endif %}>Agendado</option>
                     <option value="Em andamento" {% if agendamento.get('status') == 'Em andamento' %}selected{% endif %}>Em andamento</option>
                     <option value="Finalizado" {% if agendamento.get('status') == 'Finalizado' %}selected{% endif %}>Finalizado</option>
                 </select>

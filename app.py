@@ -102,11 +102,32 @@ def usuario_autenticado(usuario, senha):
 
 def converter_valor_para_float(valor):
     try:
-        valor_limpo = str(valor).replace("R$", "").replace(".", "").replace(",", ".").strip()
+        if valor is None:
+            return 0.0
+
+        # Se já for número
+        if isinstance(valor, (int, float)):
+            return float(valor)
+
+        valor_limpo = str(valor).strip().replace("R$", "").replace(" ", "")
+
+        # Formato brasileiro: 1.234,56
+        if "," in valor_limpo and "." in valor_limpo:
+            if valor_limpo.rfind(",") > valor_limpo.rfind("."):
+                valor_limpo = valor_limpo.replace(".", "").replace(",", ".")
+            else:
+                valor_limpo = valor_limpo.replace(",", "")
+
+        # Formato brasileiro simples: 200,00
+        elif "," in valor_limpo:
+            valor_limpo = valor_limpo.replace(",", ".")
+
+        # Formato americano: 200.00 → não mexe
+
         return float(valor_limpo)
+
     except:
         return 0.0
-
 
 def identificar_veiculo(veiculo):
     marca = str(veiculo.get("marca", "")).strip()

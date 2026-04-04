@@ -14,12 +14,26 @@
         <form method="POST">
             <div class="mb-3">
                 <label class="form-label fw-semibold">Cliente</label>
-                <input type="text" name="cliente" class="form-control" value="{{ servico.cliente }}" required>
+                <select name="cliente_id" class="form-select" required>
+                    <option value="">Selecione o cliente</option>
+                    {% for cliente in clientes %}
+                    <option value="{{ cliente.id }}" {% if servico.cliente_id == cliente.id %}selected{% endif %}>
+                        {{ cliente.nome }}
+                    </option>
+                    {% endfor %}
+                </select>
             </div>
 
             <div class="mb-3">
                 <label class="form-label fw-semibold">Veículo</label>
-                <input type="text" name="veiculo" class="form-control" value="{{ servico.veiculo }}" required>
+                <select name="veiculo_id" class="form-select" required>
+                    <option value="">Selecione o veículo</option>
+                    {% for veiculo in veiculos %}
+                    <option value="{{ veiculo.id }}" {% if servico.veiculo_id == veiculo.id %}selected{% endif %}>
+                        {{ veiculo.cliente }} - {{ veiculo.marca }} {{ veiculo.modelo }} - {{ veiculo.placa }}
+                    </option>
+                    {% endfor %}
+                </select>
             </div>
 
             <div class="mb-3">
@@ -29,7 +43,7 @@
 
             <div class="mb-3">
                 <label class="form-label fw-semibold">Valor</label>
-                <input type="text" name="valor" class="form-control" value="{{ servico.valor }}" required>
+                <input type="text" name="valor" class="form-control" value='{{ ("%.2f"|format(servico.valor))|replace(".", ",") }}' required>
             </div>
 
             <div class="mb-3">
